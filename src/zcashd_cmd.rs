@@ -6,7 +6,7 @@ use std::fmt::Write;
 
 use crate::file_args::{FileArgs, FileArgsLike};
 
-use zewif_zcashd::{BDBDump, ZcashdDump, ZcashdParser};
+use zewif_zcashd::{BDBDump, ZcashdDump, ZcashdParser, migrate::migrate_to_zewif};
 
 /// Process a zcashd wallet file
 #[derive(Debug, Args)]
@@ -63,8 +63,7 @@ pub fn dump_wallet(file: &Path) -> Result<String> {
         return Ok(output);
     }
 
-    let zewif_wallet = zewif_zcashd::migrate_to_zewif(&zcashd_wallet)
-        .context("Migrating to Zewif")?;
+    let zewif_wallet = migrate_to_zewif(&zcashd_wallet).context("Migrating to Zewif")?;
     writeln!(output, "---")?;
     writeln!(output, "Migrated wallet:\n{:#?}", zewif_wallet)?;
 
@@ -79,18 +78,27 @@ pub fn dump_wallet(file: &Path) -> Result<String> {
     let zcashd_address_count = zcashd_wallet.address_names().len();
 
     // Count addresses in zewif wallet - all accounts combined
-    let zewif_address_count = zewif_wallet.wallets()
+    let zewif_address_count = zewif_wallet
+        .wallets()
         .values()
         .flat_map(|w| w.accounts().values())
         .flat_map(|a| a.addresses())
         .count();
 
-    writeln!(report, "- Addresses: {}/{} preserved", zewif_address_count, zcashd_address_count)?;
+    writeln!(
+        report,
+        "- Addresses: {}/{} preserved",
+        zewif_address_count, zcashd_address_count
+    )?;
 
     // Check transaction preservation
     let zcashd_tx_count = zcashd_wallet.transactions().len();
     let zewif_tx_count = zewif_wallet.transactions().len();
-    writeln!(report, "- Transactions: {}/{} preserved", zewif_tx_count, zcashd_tx_count)?;
+    writeln!(
+        report,
+        "- Transactions: {}/{} preserved",
+        zewif_tx_count, zcashd_tx_count
+    )?;
 
     // Add the report to the output
     writeln!(output, "{}", report)?;

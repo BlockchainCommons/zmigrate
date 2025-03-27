@@ -1,8 +1,11 @@
-
 mod styles;
 
 use clap::{Parser as ClapParser, Subcommand};
-use zmigrate::{exec::Exec, zcashd_cmd, zingo_cmd};
+use zmigrate::exec::Exec;
+#[cfg(feature = "zcashd")]
+use zmigrate::zcashd_cmd;
+#[cfg(feature = "zingo")]
+use zmigrate::zingo_cmd;
 
 /// A tool for migrating Zcash wallets
 #[derive(Debug, clap::Parser)]
@@ -18,7 +21,9 @@ struct Cli {
 #[derive(Debug, Subcommand)]
 #[doc(hidden)]
 enum MainCommands {
+    #[cfg(feature = "zcashd")]
     Zcashd(zcashd_cmd::CommandArgs),
+    #[cfg(feature = "zingo")]
     Zingo(zingo_cmd::CommandArgs),
 }
 
@@ -40,7 +45,9 @@ fn inner_main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     let output = match cli.command {
+        #[cfg(feature = "zcashd")]
         MainCommands::Zcashd(args) => args.exec(),
+        #[cfg(feature = "zingo")]
         MainCommands::Zingo(args) => args.exec(),
     };
     let output = output?;

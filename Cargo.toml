@@ -11,9 +11,9 @@ name = "zmigrate"
 path = "src/main.rs"
 
 [dependencies]
-zewif = { path = "../zewif" }
-zewif-zcashd = { path = "../zewif-zcashd" }
-zewif-zingo = { path = "../zewif-zingo" }
+zewif = { git = "https://github.com/nuttycom/zewif", rev = "61c988fbfb6c3e74c5b98ba3da1cbc521b3967bd" }
+zewif-zcashd = { git = "https://github.com/nuttycom/zewif-zcashd", rev = "dc7825b03e413596fcf301d9918df24dc012c22c", optional = true }
+zewif-zingo = { git = "https://github.com/nuttycom/zewif-zingo", rev = "ac2d895af2201a5659020d91756bffe0443ba6ce", optional = true }
 
 anyhow = "1.0.95"
 hex = "0.4.3"
@@ -25,5 +25,7 @@ anstyle = "^1.0.1"
 regex = "1.10.2"
 
 [features]
-default = []
+default = ["zcashd"]
+zcashd = ["dep:zewif-zcashd"]
+zingo = ["dep:zewif-zingo"]
 with-context = []
