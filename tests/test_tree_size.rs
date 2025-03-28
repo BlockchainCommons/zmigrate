@@ -17,7 +17,7 @@ fn extract_tree_data(wallet_path: &[&str]) -> Result<()> {
     let db_dump = BDBDump::from_file(&file_path).context("Parsing BerkeleyDB file")?;
 
     // Parse to ZcashdDump
-    let zcashd_dump = ZcashdDump::from_bdb_dump(&db_dump).context("Parsing Zcashd dump")?;
+    let zcashd_dump = ZcashdDump::from_bdb_dump(&db_dump, true).context("Parsing Zcashd dump")?;
 
     // Parse into wallet structure
     let (zcashd_wallet, _unparsed_keys) =

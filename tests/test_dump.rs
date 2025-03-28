@@ -19,7 +19,7 @@ fn dump_wallet(path_elements: &[&str]) -> Result<String> {
     let path = fixtures_dir().join(path_elements.iter().collect::<PathBuf>());
     match path_elements[0] {
         #[cfg(feature = "zcashd")]
-        "zcashd" => zcashd_cmd::dump_wallet(&path),
+        "zcashd" => zcashd_cmd::dump_wallet(&path, true),
         #[cfg(feature = "zingo")]
         "zingo" => zingo_cmd::dump_wallet(&path),
         _ => {

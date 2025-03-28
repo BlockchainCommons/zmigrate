@@ -14,6 +14,13 @@ use zewif_zcashd::{BDBDump, ZcashdDump, ZcashdParser, migrate::migrate_to_zewif}
 pub struct CommandArgs {
     #[command(flatten)]
     file_args: FileArgs,
+
+    /// Flag indicating whether lenient parsing is allowed.
+    ///
+    /// Defaults to `false`. If set to `true`, parse errors will be reported to `stderr` but will
+    /// not halt execution.
+    #[arg(long, default_value = "false")]
+    lenient: bool
 }
 
 impl FileArgsLike for CommandArgs {
@@ -24,17 +31,17 @@ impl FileArgsLike for CommandArgs {
 
 impl crate::exec::Exec for CommandArgs {
     fn exec(&self) -> Result<String> {
-        dump_wallet(self.file())
+        dump_wallet(self.file(), !self.lenient)
     }
 }
 
-pub fn dump_wallet(file: &Path) -> Result<String> {
+pub fn dump_wallet(file: &Path, strict: bool) -> Result<String> {
     let db_dump = BDBDump::from_file(file).context("Parsing BerkeleyDB file")?;
 
-    let zcashd_dump = ZcashdDump::from_bdb_dump(&db_dump).context("Parsing Zcashd dump")?;
+    let zcashd_dump = ZcashdDump::from_bdb_dump(&db_dump, strict).context("Parsing Zcashd dump")?;
 
     let (zcashd_wallet, unparsed_keys) =
-        ZcashdParser::parse_dump(&zcashd_dump).context("Parsing Zcashd dump")?;
+        ZcashdParser::parse_dump(&zcashd_dump, strict).context("Parsing Zcashd wallet")?;
 
     let mut output = String::new();
 
