@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use std::collections::{HashMap, HashSet};
-use std::path::PathBuf;
 use std::fmt::Write;
+use std::path::PathBuf;
 
 use zewif_zcashd::{BDBDump, ZcashdDump, ZcashdParser, ZcashdWallet};
 
@@ -29,7 +29,7 @@ fn load_zcashd_wallet(path_elements: &[&str]) -> Result<ZcashdWallet> {
     let db_dump = BDBDump::from_file(&path).context("Parsing BerkeleyDB file")?;
 
     // Parse to ZcashdDump
-    let zcashd_dump = ZcashdDump::from_bdb_dump(&db_dump).context("Parsing Zcashd dump")?;
+    let zcashd_dump = ZcashdDump::from_bdb_dump(&db_dump, true).context("Parsing Zcashd dump")?;
 
     // Parse into wallet structure
     let (zcashd_wallet, _unparsed_keys) =
@@ -61,8 +61,8 @@ fn test_transaction_assignment_coverage(path_elements: &[&str]) -> Result<String
     }
 
     // Migrate to ZeWIF
-    let zewif_wallet = zewif_zcashd::migrate_to_zewif(&wallet)
-        .context("Migrating to ZeWIF")?;
+    let zewif_wallet =
+        zewif_zcashd::migrate::migrate_to_zewif(&wallet).context("Migrating to ZeWIF")?;
 
     // Check that all transactions are assigned to at least one account
     let zewif_tx_count = zewif_wallet.transactions().len();
@@ -77,7 +77,8 @@ fn test_transaction_assignment_coverage(path_elements: &[&str]) -> Result<String
     // Check each wallet and account for transactions
     for (wallet_id, zewif_wallet) in zewif_wallet.wallets() {
         for (account_id, account) in zewif_wallet.accounts() {
-            let tx_ids: HashSet<String> = account.relevant_transactions()
+            let tx_ids: HashSet<String> = account
+                .relevant_transactions()
                 .iter()
                 .map(|tx_id| format!("{:?}", tx_id))
                 .collect();
@@ -103,7 +104,11 @@ fn test_transaction_assignment_coverage(path_elements: &[&str]) -> Result<String
 
     // Generate report
     let mut report = String::new();
-    writeln!(report, "Transaction Assignment Report for {:?}", path_elements)?;
+    writeln!(
+        report,
+        "Transaction Assignment Report for {:?}",
+        path_elements
+    )?;
     writeln!(report, "- Total Transactions: {}", tx_count)?;
     writeln!(report, "- Transactions in ZeWIF: {}", zewif_tx_count)?;
 
@@ -113,8 +118,13 @@ fn test_transaction_assignment_coverage(path_elements: &[&str]) -> Result<String
         0.0
     };
 
-    writeln!(report, "- Assigned Transactions: {}/{} ({:.1}%)",
-            zewif_tx_count - unassigned_tx_count, zewif_tx_count, assigned_percentage)?;
+    writeln!(
+        report,
+        "- Assigned Transactions: {}/{} ({:.1}%)",
+        zewif_tx_count - unassigned_tx_count,
+        zewif_tx_count,
+        assigned_percentage
+    )?;
 
     // List accounts and their transaction counts
     writeln!(report, "\nTransaction Distribution by Account:")?;
@@ -124,7 +134,11 @@ fn test_transaction_assignment_coverage(path_elements: &[&str]) -> Result<String
 
     // List any unassigned transactions
     if !unassigned_txs.is_empty() {
-        writeln!(report, "\nUnassigned Transactions ({}):", unassigned_txs.len())?;
+        writeln!(
+            report,
+            "\nUnassigned Transactions ({}):",
+            unassigned_txs.len()
+        )?;
         for tx_id in unassigned_txs.iter().take(5) {
             writeln!(report, "- {}", tx_id)?;
         }
@@ -153,8 +167,8 @@ fn test_transaction_duplicate_assignments(path_elements: &[&str]) -> Result<Stri
     let wallet = load_zcashd_wallet(path_elements)?;
 
     // Migrate to ZeWIF
-    let zewif_wallet = zewif_zcashd::migrate_to_zewif(&wallet)
-        .context("Migrating to ZeWIF")?;
+    let zewif_wallet =
+        zewif_zcashd::migrate::migrate_to_zewif(&wallet).context("Migrating to ZeWIF")?;
 
     // Track which transactions are assigned to which accounts
     let mut tx_assignments: HashMap<String, HashSet<String>> = HashMap::new();
@@ -188,9 +202,21 @@ fn test_transaction_duplicate_assignments(path_elements: &[&str]) -> Result<Stri
 
     // Generate report
     let mut report = String::new();
-    writeln!(report, "Transaction Duplicate Assignment Report for {:?}", path_elements)?;
-    writeln!(report, "- Total Transactions: {}", zewif_wallet.transactions().len())?;
-    writeln!(report, "- Multi-Account Transactions: {}", multi_assigned_tx_count)?;
+    writeln!(
+        report,
+        "Transaction Duplicate Assignment Report for {:?}",
+        path_elements
+    )?;
+    writeln!(
+        report,
+        "- Total Transactions: {}",
+        zewif_wallet.transactions().len()
+    )?;
+    writeln!(
+        report,
+        "- Multi-Account Transactions: {}",
+        multi_assigned_tx_count
+    )?;
 
     let multi_account_percentage = if !zewif_wallet.transactions().is_empty() {
         (multi_assigned_tx_count as f64 / zewif_wallet.transactions().len() as f64) * 100.0
@@ -198,18 +224,31 @@ fn test_transaction_duplicate_assignments(path_elements: &[&str]) -> Result<Stri
         0.0
     };
 
-    writeln!(report, "- Multi-Account Assignment Rate: {:.1}%", multi_account_percentage)?;
+    writeln!(
+        report,
+        "- Multi-Account Assignment Rate: {:.1}%",
+        multi_account_percentage
+    )?;
 
     // List transactions with multiple assignments
     if !multi_assigned_txs.is_empty() {
         writeln!(report, "\nTransactions Assigned to Multiple Accounts:")?;
         for (_count, (tx_id, accounts)) in multi_assigned_txs.iter().enumerate().take(5) {
-            writeln!(report, "- Transaction {}: {} accounts", tx_id, accounts.len())?;
+            writeln!(
+                report,
+                "- Transaction {}: {} accounts",
+                tx_id,
+                accounts.len()
+            )?;
             writeln!(report, "  Assigned to: {:?}", accounts)?;
         }
 
         if multi_assigned_txs.len() > 5 {
-            writeln!(report, "- ... and {} more multi-assigned transactions", multi_assigned_txs.len() - 5)?;
+            writeln!(
+                report,
+                "- ... and {} more multi-assigned transactions",
+                multi_assigned_txs.len() - 5
+            )?;
         }
     }
 
@@ -240,8 +279,8 @@ fn test_change_detection(path_elements: &[&str]) -> Result<String> {
     let change_addresses = extract_change_addresses(&wallet);
 
     // Migrate to ZeWIF
-    let zewif_wallet = zewif_zcashd::migrate_to_zewif(&wallet)
-        .context("Migrating to ZeWIF")?;
+    let zewif_wallet =
+        zewif_zcashd::migrate::migrate_to_zewif(&wallet).context("Migrating to ZeWIF")?;
 
     // Find transactions that might involve change
     let mut potential_change_txs = 0;
@@ -259,7 +298,8 @@ fn test_change_detection(path_elements: &[&str]) -> Result<String> {
             // Count assigned accounts for this transaction (placeholder for now)
             // In a complete implementation, we would check that this transaction
             // is assigned to the same account that sent the funds
-            let assigned_account_count = count_accounts_for_transaction(&zewif_wallet, &transaction.txid());
+            let assigned_account_count =
+                count_accounts_for_transaction(&zewif_wallet, &transaction.txid());
 
             // If assigned to exactly one account, consider it properly assigned
             if assigned_account_count == 1 {
@@ -270,10 +310,26 @@ fn test_change_detection(path_elements: &[&str]) -> Result<String> {
 
     // Generate report
     let mut report = String::new();
-    writeln!(report, "Change Transaction Assignment Report for {:?}", path_elements)?;
-    writeln!(report, "- Total Transactions: {}", zewif_wallet.transactions().len())?;
-    writeln!(report, "- Potential Change Transactions: {}", potential_change_txs)?;
-    writeln!(report, "- Change Addresses Found: {}", change_addresses.len())?;
+    writeln!(
+        report,
+        "Change Transaction Assignment Report for {:?}",
+        path_elements
+    )?;
+    writeln!(
+        report,
+        "- Total Transactions: {}",
+        zewif_wallet.transactions().len()
+    )?;
+    writeln!(
+        report,
+        "- Potential Change Transactions: {}",
+        potential_change_txs
+    )?;
+    writeln!(
+        report,
+        "- Change Addresses Found: {}",
+        change_addresses.len()
+    )?;
 
     let properly_assigned_percentage = if potential_change_txs > 0 {
         (properly_assigned_change_txs as f64 / potential_change_txs as f64) * 100.0
@@ -281,8 +337,11 @@ fn test_change_detection(path_elements: &[&str]) -> Result<String> {
         0.0
     };
 
-    writeln!(report, "- Properly Assigned Change Transactions: {}/{} ({:.1}%)",
-            properly_assigned_change_txs, potential_change_txs, properly_assigned_percentage)?;
+    writeln!(
+        report,
+        "- Properly Assigned Change Transactions: {}/{} ({:.1}%)",
+        properly_assigned_change_txs, potential_change_txs, properly_assigned_percentage
+    )?;
 
     // List some change addresses if found
     if !change_addresses.is_empty() {
@@ -291,7 +350,11 @@ fn test_change_detection(path_elements: &[&str]) -> Result<String> {
             writeln!(report, "- {}", addr)?;
         }
         if change_addresses.len() > 5 {
-            writeln!(report, "- ... and {} more change addresses", change_addresses.len() - 5)?;
+            writeln!(
+                report,
+                "- ... and {} more change addresses",
+                change_addresses.len() - 5
+            )?;
         }
     }
 
@@ -357,13 +420,10 @@ fn test_transaction_assignment_across_wallets() -> Result<()> {
         // Golden wallets (expected to have full transaction history)
         vec!["zcashd", "golden-v5.6.0", "node0_wallet.dat"],
         vec!["zcashd", "golden-v5.6.0", "node2_wallet.dat"], // Test a different node wallet
-
         // Tarnished wallets (may have corruption or issues)
         vec!["zcashd", "tarnished-v5.6.0", "node0_wallet.dat"],
-
         // Sprout wallets (older format)
         vec!["zcashd", "sprout", "node0_wallet.dat"],
-
         // Standard wallets
         vec!["zcashd", "wallet0.dat"], // Basic wallet
         vec!["zcashd", "wallet5.dat"], // Wallet with likely Orchard data
@@ -372,9 +432,16 @@ fn test_transaction_assignment_across_wallets() -> Result<()> {
     // Create a summary table
     let mut summary = String::new();
     writeln!(summary, "=== TRANSACTION ASSIGNMENT SUMMARY ===")?;
-    writeln!(summary, "{:<40} | {:<15} | {:<15} | {:<15}",
-             "Wallet", "Total Txs", "Assigned (%)", "Multi-Assigned (%)")?;
-    writeln!(summary, "{:-<40}-+-{:-<15}-+-{:-<15}-+-{:-<15}", "", "", "", "")?;
+    writeln!(
+        summary,
+        "{:<40} | {:<15} | {:<15} | {:<15}",
+        "Wallet", "Total Txs", "Assigned (%)", "Multi-Assigned (%)"
+    )?;
+    writeln!(
+        summary,
+        "{:-<40}-+-{:-<15}-+-{:-<15}-+-{:-<15}",
+        "", "", "", ""
+    )?;
 
     for path in &test_paths {
         // Run all tests for this wallet
@@ -392,10 +459,14 @@ fn test_transaction_assignment_across_wallets() -> Result<()> {
         let wallet_name = path.join("/");
         let tx_count = extract_stat(&coverage_report, "- Total Transactions:");
         let assigned_percentage = extract_percentage(&coverage_report, "- Assigned Transactions:");
-        let multi_assigned_percentage = extract_percentage(&duplicate_report, "- Multi-Account Assignment Rate:");
+        let multi_assigned_percentage =
+            extract_percentage(&duplicate_report, "- Multi-Account Assignment Rate:");
 
-        writeln!(summary, "{:<40} | {:<15} | {:<15} | {:<15}",
-                 wallet_name, tx_count, assigned_percentage, multi_assigned_percentage)?;
+        writeln!(
+            summary,
+            "{:<40} | {:<15} | {:<15} | {:<15}",
+            wallet_name, tx_count, assigned_percentage, multi_assigned_percentage
+        )?;
     }
 
     // Print final summary
@@ -445,7 +516,7 @@ fn extract_percentage(report: &str, label: &str) -> String {
         if let Some(pct_idx) = line.find('%') {
             if let Some(paren_idx) = line.find('(') {
                 if paren_idx < pct_idx {
-                    let percentage = &line[paren_idx+1..pct_idx];
+                    let percentage = &line[paren_idx + 1..pct_idx];
                     return percentage.trim().to_string();
                 }
             }
@@ -453,7 +524,10 @@ fn extract_percentage(report: &str, label: &str) -> String {
             // Try to extract just the number before the % sign
             let start_idx = pct_idx;
             let mut current_idx = start_idx;
-            while current_idx > 0 && (line.chars().nth(current_idx-1).unwrap().is_ascii_digit() || line.chars().nth(current_idx-1).unwrap() == '.') {
+            while current_idx > 0
+                && (line.chars().nth(current_idx - 1).unwrap().is_ascii_digit()
+                    || line.chars().nth(current_idx - 1).unwrap() == '.')
+            {
                 current_idx -= 1;
             }
             if current_idx < start_idx {
@@ -485,11 +559,12 @@ fn test_transaction_address_registry_correlation() -> Result<()> {
     let tx_count = wallet.transactions().len();
 
     // Migrate to ZeWIF
-    let zewif_wallet = zewif_zcashd::migrate_to_zewif(&wallet)
-        .context("Migrating to ZeWIF")?;
+    let zewif_wallet =
+        zewif_zcashd::migrate::migrate_to_zewif(&wallet).context("Migrating to ZeWIF")?;
 
     // Count addresses in the ZeWIF wallet
-    let zewif_address_count = zewif_wallet.wallets()
+    let zewif_address_count = zewif_wallet
+        .wallets()
         .values()
         .flat_map(|w| w.accounts().values())
         .flat_map(|a| a.addresses())
@@ -499,7 +574,8 @@ fn test_transaction_address_registry_correlation() -> Result<()> {
     let zewif_tx_count = zewif_wallet.transactions().len();
 
     // Count transactions assigned to accounts
-    let assigned_txs: HashSet<_> = zewif_wallet.wallets()
+    let assigned_txs: HashSet<_> = zewif_wallet
+        .wallets()
         .values()
         .flat_map(|w| w.accounts().values())
         .flat_map(|a| a.relevant_transactions())
@@ -515,35 +591,55 @@ fn test_transaction_address_registry_correlation() -> Result<()> {
     println!("- Transactions Assigned to Accounts: {}", assigned_tx_count);
 
     // Basic assertions
-    assert!(zewif_address_count > 0, "No addresses found in ZeWIF wallet");
+    assert!(
+        zewif_address_count > 0,
+        "No addresses found in ZeWIF wallet"
+    );
     assert!(zewif_tx_count > 0, "No transactions found in ZeWIF wallet");
-    assert!(assigned_tx_count > 0, "No transactions assigned to accounts");
+    assert!(
+        assigned_tx_count > 0,
+        "No transactions assigned to accounts"
+    );
 
     // Check address preservation - The counts might not be exactly equal due to
     // potential differences in how addresses are represented between formats
-    println!("- Note: ZeWIF address count may differ due to unified addresses or different representation formats");
-    assert!(zewif_address_count > 0, "No addresses in ZeWIF format after migration");
+    println!(
+        "- Note: ZeWIF address count may differ due to unified addresses or different representation formats"
+    );
+    assert!(
+        zewif_address_count > 0,
+        "No addresses in ZeWIF format after migration"
+    );
 
     // Check transaction preservation
-    assert_eq!(zewif_tx_count, tx_count,
+    assert_eq!(
+        zewif_tx_count, tx_count,
         "Transaction count mismatch: ZeWIF has {} transactions, source has {}",
-        zewif_tx_count, tx_count);
+        zewif_tx_count, tx_count
+    );
 
     // Check that at least some transactions are assigned (ideally all)
     // This checks that we're not defaulting to zero assigned transactions
-    assert!(assigned_tx_count > 0,
-        "No transactions assigned to accounts after migration");
+    assert!(
+        assigned_tx_count > 0,
+        "No transactions assigned to accounts after migration"
+    );
 
     // In a perfect world, all transactions would be assigned
     // but we might need to relax this assertion depending on the wallet data
     let assignment_percentage = (assigned_tx_count as f64 / zewif_tx_count as f64) * 100.0;
-    println!("- Transaction Assignment Rate: {:.1}%", assignment_percentage);
+    println!(
+        "- Transaction Assignment Rate: {:.1}%",
+        assignment_percentage
+    );
 
     // We'll check for a reasonable percentage of transaction assignment
     // 70% is a more reasonable threshold than 90% for initial testing
-    assert!(assignment_percentage >= 70.0,
+    assert!(
+        assignment_percentage >= 70.0,
         "Only {:.1}% of transactions assigned to accounts (should be >=70%)",
-        assignment_percentage);
+        assignment_percentage
+    );
 
     Ok(())
 }
@@ -569,12 +665,13 @@ fn test_address_registry_initialization() -> Result<()> {
     let sapling_count = wallet.sapling_z_addresses().len();
 
     // Migrate to ZeWIF
-    let zewif_wallet = zewif_zcashd::migrate_to_zewif(&wallet)
-        .context("Migrating to ZeWIF")?;
+    let zewif_wallet =
+        zewif_zcashd::migrate::migrate_to_zewif(&wallet).context("Migrating to ZeWIF")?;
 
     // Count addresses in the ZeWIF wallet
     // Note: This is a simplified check as we don't have direct access to address types
-    let zewif_address_count = zewif_wallet.wallets()
+    let zewif_address_count = zewif_wallet
+        .wallets()
         .values()
         .flat_map(|w| w.accounts().values())
         .flat_map(|a| a.addresses())
@@ -588,25 +685,36 @@ fn test_address_registry_initialization() -> Result<()> {
 
     // Check if addresses were preserved during migration
     // We expect at least the transparent and sapling addresses to be preserved
-    assert!(zewif_address_count >= (transparent_count + sapling_count),
+    assert!(
+        zewif_address_count >= (transparent_count + sapling_count),
         "Not all addresses were migrated: source has {} transparent and {} sapling, ZeWIF has {} total",
-        transparent_count, sapling_count, zewif_address_count);
+        transparent_count,
+        sapling_count,
+        zewif_address_count
+    );
 
     // Count transactions assigned to at least one account
-    let assigned_txs: HashSet<_> = zewif_wallet.wallets()
+    let assigned_txs: HashSet<_> = zewif_wallet
+        .wallets()
         .values()
         .flat_map(|w| w.accounts().values())
         .flat_map(|a| a.relevant_transactions())
         .collect();
 
     // Check that most transactions are assigned
-    let assignment_percentage = (assigned_txs.len() as f64 / zewif_wallet.transactions().len() as f64) * 100.0;
-    println!("- Transaction Assignment Rate: {:.1}%", assignment_percentage);
+    let assignment_percentage =
+        (assigned_txs.len() as f64 / zewif_wallet.transactions().len() as f64) * 100.0;
+    println!(
+        "- Transaction Assignment Rate: {:.1}%",
+        assignment_percentage
+    );
 
     // Check that a significant percentage are assigned
-    assert!(assignment_percentage >= 70.0,
+    assert!(
+        assignment_percentage >= 70.0,
         "Transaction assignment rate too low: {:.1}% (should be >=70%)",
-        assignment_percentage);
+        assignment_percentage
+    );
 
     Ok(())
 }
@@ -627,15 +735,15 @@ fn test_multi_account_transactions() -> Result<()> {
     // We'll focus on testing specific wallets that might have multi-account transactions
     let multi_account_wallet_paths = vec![
         vec!["zcashd", "golden-v5.6.0", "node0_wallet.dat"], // Primary test wallet
-        vec!["zcashd", "wallet0.dat"], // Additional test wallet
+        vec!["zcashd", "wallet0.dat"],                       // Additional test wallet
     ];
 
     for path in &multi_account_wallet_paths {
         let wallet = load_zcashd_wallet(path)?;
 
         // Migrate to ZeWIF
-        let zewif_wallet = zewif_zcashd::migrate_to_zewif(&wallet)
-            .context("Migrating to ZeWIF")?;
+        let zewif_wallet =
+            zewif_zcashd::migrate::migrate_to_zewif(&wallet).context("Migrating to ZeWIF")?;
 
         // Find which transactions are assigned to multiple accounts
         let mut tx_to_accounts: HashMap<String, HashSet<String>> = HashMap::new();
@@ -672,38 +780,51 @@ fn test_multi_account_transactions() -> Result<()> {
         // Generate report
         println!("Multi-Account Transaction Report for {:?}", path);
         println!("- Total Transactions: {}", total_tx_count);
-        println!("- Multi-Account Transactions: {} ({:.1}%)",
-                multi_account_count, multi_account_percentage);
+        println!(
+            "- Multi-Account Transactions: {} ({:.1}%)",
+            multi_account_count, multi_account_percentage
+        );
 
         // Display some examples of multi-account transactions
         if !multi_account_txs.is_empty() {
             println!("\nExamples of Multi-Account Transactions:");
             for (i, (tx_id, accounts)) in multi_account_txs.iter().enumerate().take(3) {
-                println!("{}. Transaction {} is assigned to {} accounts:",
-                       i+1, tx_id, accounts.len());
+                println!(
+                    "{}. Transaction {} is assigned to {} accounts:",
+                    i + 1,
+                    tx_id,
+                    accounts.len()
+                );
                 for account in accounts.iter() {
                     println!("   - {}", account);
                 }
             }
 
             if multi_account_txs.len() > 3 {
-                println!("   ... and {} more multi-account transactions", multi_account_txs.len() - 3);
+                println!(
+                    "   ... and {} more multi-account transactions",
+                    multi_account_txs.len() - 3
+                );
             }
         }
 
         // Actual test: we can't know exactly how many multi-account transactions there should be,
         // but we want to avoid having too many (which would indicate indiscriminate assignment)
-        assert!(multi_account_percentage < 80.0,
+        assert!(
+            multi_account_percentage < 80.0,
             "Too many multi-account transactions: {:.1}% (should be < 80%)",
-            multi_account_percentage);
+            multi_account_percentage
+        );
 
         // We also don't want zero multi-account transactions in most wallets, as some
         // transactions legitimately involve multiple accounts
         // However, this test might fail for some wallets with only a single account
         // or with no cross-account transactions, so we'll make it a soft check
         if total_tx_count > 10 {
-            println!("Note: Found {} multi-account transactions ({:.1}%)",
-                   multi_account_count, multi_account_percentage);
+            println!(
+                "Note: Found {} multi-account transactions ({:.1}%)",
+                multi_account_count, multi_account_percentage
+            );
         }
     }
 
