@@ -70,8 +70,8 @@ fn test_transaction_assignment_coverage(path_elements: &[&str]) -> Result<String
     let mut assigned_txs = HashSet::new();
 
     // Check each wallet and account for transactions
-    for (wallet_id, zewif_wallet) in zewif_wallet.wallets() {
-        for (account_id, account) in zewif_wallet.accounts() {
+    for (wallet_index, zewif_wallet) in zewif_wallet.wallets().iter().enumerate() {
+        for (account_index, account) in zewif_wallet.accounts().iter().enumerate() {
             let tx_ids: HashSet<String> = account.relevant_transactions()
                 .iter()
                 .map(|tx_id| format!("{:?}", tx_id))
@@ -81,7 +81,7 @@ fn test_transaction_assignment_coverage(path_elements: &[&str]) -> Result<String
             assigned_txs.extend(tx_ids.clone());
 
             // Build an identifier for this account
-            let account_key = format!("Wallet:{:?}/Account:{:?}", wallet_id, account_id);
+            let account_key = format!("Wallet:{:?}/Account:{:?}", wallet_index, account_index);
             account_tx_counts.insert(account_key, tx_ids);
         }
     }
@@ -155,10 +155,10 @@ fn test_transaction_duplicate_assignments(path_elements: &[&str]) -> Result<Stri
     let mut tx_assignments: HashMap<String, HashSet<String>> = HashMap::new();
 
     // Check each wallet and account for transactions
-    for (wallet_id, zewif_wallet) in zewif_wallet.wallets() {
-        for (account_id, account) in zewif_wallet.accounts() {
+    for (wallet_index, zewif_wallet) in zewif_wallet.wallets().iter().enumerate() {
+        for (account_index, account) in zewif_wallet.accounts().iter().enumerate() {
             // Build an identifier for this account
-            let account_key = format!("Wallet:{:?}/Account:{:?}", wallet_id, account_id);
+            let account_key = format!("Wallet:{:?}/Account:{:?}", wallet_index, account_index);
 
             for tx_id in account.relevant_transactions() {
                 let tx_id_str = format!("{:?}", tx_id);
@@ -323,8 +323,8 @@ fn extract_change_addresses(_wallet: &ZcashdWallet) -> HashSet<String> {
 fn count_accounts_for_transaction(zewif_wallet: &zewif::ZewifTop, tx_id: &zewif::TxId) -> usize {
     let mut account_count = 0;
 
-    for wallet in zewif_wallet.wallets().values() {
-        for account in wallet.accounts().values() {
+    for wallet in zewif_wallet.wallets() {
+        for account in wallet.accounts() {
             if account.relevant_transactions().contains(tx_id) {
                 account_count += 1;
             }
@@ -485,8 +485,8 @@ fn test_transaction_address_registry_correlation() -> Result<()> {
 
     // Count addresses in the ZeWIF wallet
     let zewif_address_count = zewif_wallet.wallets()
-        .values()
-        .flat_map(|w| w.accounts().values())
+        .iter()
+        .flat_map(|w| w.accounts())
         .flat_map(|a| a.addresses())
         .count();
 
@@ -495,8 +495,8 @@ fn test_transaction_address_registry_correlation() -> Result<()> {
 
     // Count transactions assigned to accounts
     let assigned_txs: HashSet<_> = zewif_wallet.wallets()
-        .values()
-        .flat_map(|w| w.accounts().values())
+        .iter()
+        .flat_map(|w| w.accounts())
         .flat_map(|a| a.relevant_transactions())
         .collect();
     let assigned_tx_count = assigned_txs.len();
@@ -570,8 +570,8 @@ fn test_address_registry_initialization() -> Result<()> {
     // Count addresses in the ZeWIF wallet
     // Note: This is a simplified check as we don't have direct access to address types
     let zewif_address_count = zewif_wallet.wallets()
-        .values()
-        .flat_map(|w| w.accounts().values())
+        .iter()
+        .flat_map(|w| w.accounts())
         .flat_map(|a| a.addresses())
         .count();
 
@@ -589,8 +589,8 @@ fn test_address_registry_initialization() -> Result<()> {
 
     // Count transactions assigned to at least one account
     let assigned_txs: HashSet<_> = zewif_wallet.wallets()
-        .values()
-        .flat_map(|w| w.accounts().values())
+        .iter()
+        .flat_map(|w| w.accounts())
         .flat_map(|a| a.relevant_transactions())
         .collect();
 
@@ -635,9 +635,9 @@ fn test_multi_account_transactions() -> Result<()> {
         // Find which transactions are assigned to multiple accounts
         let mut tx_to_accounts: HashMap<String, HashSet<String>> = HashMap::new();
 
-        for (wallet_id, wallet) in zewif_wallet.wallets() {
-            for (account_id, account) in wallet.accounts() {
-                let account_key = format!("Wallet:{:?}/Account:{:?}", wallet_id, account_id);
+        for (wallet_index, wallet) in zewif_wallet.wallets().iter().enumerate() {
+            for (account_index, account) in wallet.accounts().iter().enumerate() {
+                let account_key = format!("Wallet:{:?}/Account:{:?}", wallet_index, account_index);
 
                 for tx_id in account.relevant_transactions() {
                     let tx_id_str = format!("{:?}", tx_id);

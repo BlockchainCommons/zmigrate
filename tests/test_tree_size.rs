@@ -39,8 +39,8 @@ fn extract_tree_data(wallet_path: &[&str]) -> Result<()> {
 
     // Count total addresses and transactions after migration
     let address_count = zewif_wallet.wallets()
-        .values()
-        .flat_map(|w| w.accounts().values())
+        .iter()
+        .flat_map(|w| w.accounts())
         .flat_map(|a| a.addresses())
         .count();
 

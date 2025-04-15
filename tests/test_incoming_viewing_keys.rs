@@ -239,9 +239,9 @@ fn extract_ivks_from_zewif(wallet: &ZewifWallet) -> HashMap<String, String> {
     let mut ivks = HashMap::new();
 
     // Iterate through all accounts in the wallet
-    for account in wallet.accounts().values() {
+    for account in wallet.accounts() {
         // Examine each address in the account
-        for address in account.addresses().values() {
+        for address in account.addresses() {
             // Only shielded addresses can have IVKs
             if let ProtocolAddress::Shielded(shielded) = address.address() {
                 // Extract the IVK if present (handles None case correctly)
@@ -273,7 +273,7 @@ fn extract_ivks_from_zewif_top(zewif_top: &ZewifTop) -> HashMap<String, String> 
     let mut all_ivks = HashMap::new();
 
     // Get all wallets from the top container
-    for wallet in zewif_top.wallets().values() {
+    for wallet in zewif_top.wallets() {
         // Extract IVKs from each wallet and combine them
         let wallet_ivks = extract_ivks_from_zewif(wallet);
         all_ivks.extend(wallet_ivks);

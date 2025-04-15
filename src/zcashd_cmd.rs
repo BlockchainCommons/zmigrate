@@ -80,8 +80,8 @@ pub fn dump_wallet(file: &Path) -> Result<String> {
 
     // Count addresses in zewif wallet - all accounts combined
     let zewif_address_count = zewif_wallet.wallets()
-        .values()
-        .flat_map(|w| w.accounts().values())
+        .iter()
+        .flat_map(|w| w.accounts())
         .flat_map(|a| a.addresses())
         .count();
 

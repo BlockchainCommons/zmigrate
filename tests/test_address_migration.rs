@@ -137,9 +137,9 @@ fn extract_addresses_from_zewif(wallet: &ZewifWallet) -> HashMap<String, Address
     let mut addresses = HashMap::new();
 
     // Iterate through all accounts in the wallet
-    for account in wallet.accounts().values() {
+    for account in wallet.accounts() {
         // Examine each address in the account
-        for address in account.addresses().values() {
+        for address in account.addresses() {
             let address_str = address.as_string();
             let address_type;
             let has_ivk;
@@ -196,7 +196,7 @@ fn extract_addresses_from_zewif_top(zewif_top: &ZewifTop) -> HashMap<String, Add
     let mut all_addresses = HashMap::new();
 
     // Get all wallets from the top container
-    for wallet in zewif_top.wallets().values() {
+    for wallet in zewif_top.wallets() {
         // Extract addresses from each wallet and combine them
         let wallet_addresses = extract_addresses_from_zewif(wallet);
         all_addresses.extend(wallet_addresses);
@@ -394,7 +394,7 @@ fn test_address_default_account_assignment() -> Result<()> {
 
         // In default mode, all addresses should be in the default account
         // Verify this by checking that all addresses are in a single account
-        let wallet = zewif_top.wallets().values().next().expect("No wallet found");
+        let wallet = zewif_top.wallets().iter().next().expect("No wallet found");
 
         // Check if this wallet has unified accounts
         let has_unified_accounts = zcashd_wallet.unified_accounts().is_some();
@@ -407,7 +407,7 @@ fn test_address_default_account_assignment() -> Result<()> {
                 "Default migration should result in a single account for wallets without unified accounts"
             );
 
-            let default_account = wallet.accounts().values().next().expect("No account found");
+            let default_account = wallet.accounts().iter().next().expect("No account found");
             assert_eq!(
                 default_account.addresses().len(),
                 addresses_before.len(),

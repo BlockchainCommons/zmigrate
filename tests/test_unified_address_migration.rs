@@ -128,9 +128,9 @@ fn extract_unified_addresses_from_zewif(wallet: &ZewifWallet) -> HashMap<String,
     let mut unified_addresses = HashMap::new();
 
     // Iterate through all accounts in the wallet
-    for account in wallet.accounts().values() {
+    for account in wallet.accounts() {
         // Examine each address in the account to find unified addresses
-        for address in account.addresses().values() {
+        for address in account.addresses() {
             if let Some(unified_addr) = address.as_unified() {
                 let address_str = address.as_string();
 
@@ -169,7 +169,7 @@ fn extract_unified_addresses_from_zewif_top(zewif_top: &ZewifTop) -> HashMap<Str
     let mut all_addresses = HashMap::new();
 
     // Get all wallets from the top container
-    for wallet in zewif_top.wallets().values() {
+    for wallet in zewif_top.wallets() {
         // Extract addresses from each wallet and combine them
         let wallet_addresses = extract_unified_addresses_from_zewif(wallet);
         all_addresses.extend(wallet_addresses);
@@ -367,7 +367,7 @@ fn test_unified_address_account_assignment() -> Result<()> {
         let zewif_top = zewif_zcashd::migrate_to_zewif(&zcashd_wallet)?;
 
         // Get the first wallet from the top container
-        let wallet = zewif_top.wallets().values().next().expect("No wallet found");
+        let wallet = zewif_top.wallets().iter().next().expect("No wallet found");
 
         // Check if this wallet has unified accounts
         let has_unified_accounts = zcashd_wallet.unified_accounts().is_some();
@@ -381,8 +381,9 @@ fn test_unified_address_account_assignment() -> Result<()> {
             );
 
             // The single account should contain all unified addresses (if any)
-            let default_account = wallet.accounts().values().next().expect("No account found");
-            let unified_addresses_in_account = default_account.addresses().values()
+            let default_account = wallet.accounts().iter().next().expect("No account found");
+            let unified_addresses_in_account = default_account.addresses()
+                .iter()
                 .filter(|addr| addr.is_unified())
                 .count();
 
@@ -398,8 +399,9 @@ fn test_unified_address_account_assignment() -> Result<()> {
 
             // Count the total number of unified addresses across all accounts
             let mut total_unified_addresses = 0;
-            for account in wallet.accounts().values() {
-                total_unified_addresses += account.addresses().values()
+            for account in wallet.accounts() {
+                total_unified_addresses += account.addresses()
+                    .iter()
                     .filter(|addr| addr.is_unified())
                     .count();
             }
