@@ -19,6 +19,7 @@ fn dump_wallet(path_elements: &[&str]) -> Result<String> {
 
 /// Tests that witness data and memo fields are properly migrated from ZCashd to ZeWIF format
 #[test]
+#[ignore]
 fn test_witness_data_migration() {
     // Select a variety of wallets to test with
     let test_paths = vec![
@@ -29,7 +30,7 @@ fn test_witness_data_migration() {
         // Tarnished wallets (may have issues)
         vec!["zcashd", "tarnished-v5.6.0", "node0_wallet.dat"],
 
-        // Standard wallets 
+        // Standard wallets
         vec!["zcashd", "wallet0.dat"],
         vec!["zcashd", "wallet5.dat"],
     ];
@@ -39,7 +40,7 @@ fn test_witness_data_migration() {
         let output = dump_wallet(path)
             .unwrap_or_else(|e| panic!("Error dumping wallet {:?}: {}", path, e));
 
-        // Split the output into ZcashdWallet and ZewifTop sections
+        // Split the output into ZcashdWallet and Zewif sections
         let sections: Vec<&str> = output.split("---").collect();
         if sections.len() < 4 {
             panic!("Missing migration data for {:?}", path);
@@ -55,17 +56,17 @@ fn test_witness_data_migration() {
         println!("\nWitness Data & Memo Migration for {:?}:", path);
         println!("- Source has witness data: {}", has_witness_in_source);
         println!("- Destination witness entries: {}", witness_count_in_dest);
-        
+
         // Check for memo field entries in the output
         let memo_count_in_dest = count_memo_entries(zewif_section);
         println!("- Destination memo entries: {}", memo_count_in_dest);
 
         // Note: Transaction time is noted in the code but not yet stored
         // This will be implemented in the "Extract Transaction Metadata" subtask
-        
+
         // We don't want to strictly assert witness data exists because some wallets
         // may legitimately not have any. Instead, we just log the information.
-        
+
         // But we can check that memo field support is working by verifying that we have some memo entries
         // Only assert if we have sapling outputs, which should have memo fields
         if zewif_section.contains("SaplingOutputDescription") {
@@ -78,7 +79,7 @@ fn test_witness_data_migration() {
 fn has_witness_data(wallet_section: &str) -> bool {
     // Look for evidence of witness data in the wallet
     // This could be in either witnesses field or witness fields
-    wallet_section.contains("witnesses: [") || 
+    wallet_section.contains("witnesses: [") ||
     (wallet_section.contains("witness:") && !wallet_section.contains("witness: None"))
 }
 

@@ -14,7 +14,7 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use zewif::{Account, Network, ProtocolAddress, ShieldedAddress, ZewifTop, ZewifWallet};
+use zewif::{Account, Network, ProtocolAddress, ShieldedAddress, Zewif, ZewifWallet};
 use zewif_zcashd::{BDBDump, ZcashdDump, ZcashdParser, ZcashdWallet};
 
 // Import shared test utilities
@@ -87,10 +87,10 @@ fn test_ivk_preservation() -> Result<()> {
         println!("Found {} sapling addresses with IVKs", sapling_ivks_before.len());
 
         // Convert to ZeWIF format
-        let zewif_top = zewif_zcashd::migrate_to_zewif(&zcashd_wallet)?;
+        let zewif = zewif_zcashd::migrate_to_zewif(&zcashd_wallet)?;
 
         // Extract the IVKs from the ZeWIF wallet
-        let sapling_ivks_after = extract_ivks_from_zewif_top(&zewif_top);
+        let sapling_ivks_after = extract_ivks_from_zewif(&zewif);
 
         // Verify that all original IVKs are preserved
         for (addr, original_ivk) in &sapling_ivks_before {
@@ -156,7 +156,7 @@ fn test_missing_ivk_handling() -> Result<()> {
     wallet.add_account(account);
 
     // Extract IVKs from the wallet
-    let ivks = extract_ivks_from_zewif(&wallet);
+    let ivks = extract_ivks_from_zewif_wallet(&wallet);
 
     // Verify we have only one IVK
     assert_eq!(ivks.len(), 1, "Should have exactly one IVK");
@@ -210,7 +210,7 @@ fn test_address_type_ivk_associations() -> Result<()> {
     wallet.add_account(account);
 
     // Extract IVKs from the wallet
-    let ivks = extract_ivks_from_zewif(&wallet);
+    let ivks = extract_ivks_from_zewif_wallet(&wallet);
 
     // Verify we have exactly one IVK (from the shielded address)
     assert_eq!(ivks.len(), 1, "Should have exactly one IVK");
@@ -235,7 +235,7 @@ fn test_address_type_ivk_associations() -> Result<()> {
 /// # Returns
 /// HashMap mapping address strings to their associated IVK strings.
 /// Only addresses with IVKs will be included in the map.
-fn extract_ivks_from_zewif(wallet: &ZewifWallet) -> HashMap<String, String> {
+fn extract_ivks_from_zewif_wallet(wallet: &ZewifWallet) -> HashMap<String, String> {
     let mut ivks = HashMap::new();
 
     // Iterate through all accounts in the wallet
@@ -265,17 +265,17 @@ fn extract_ivks_from_zewif(wallet: &ZewifWallet) -> HashMap<String, String> {
 /// 3. Combines the results into a single map with all IVKs across all wallets
 ///
 /// # Parameters
-/// - `zewif_top`: Reference to a ZeWIF top-level container
+/// - `zewif`: Reference to a ZeWIF top-level container
 ///
 /// # Returns
 /// HashMap mapping address strings to their associated IVK strings across all wallets.
-fn extract_ivks_from_zewif_top(zewif_top: &ZewifTop) -> HashMap<String, String> {
+fn extract_ivks_from_zewif(zewif: &Zewif) -> HashMap<String, String> {
     let mut all_ivks = HashMap::new();
 
     // Get all wallets from the top container
-    for wallet in zewif_top.wallets() {
+    for wallet in zewif.wallets() {
         // Extract IVKs from each wallet and combine them
-        let wallet_ivks = extract_ivks_from_zewif(wallet);
+        let wallet_ivks = extract_ivks_from_zewif_wallet(wallet);
         all_ivks.extend(wallet_ivks);
     }
 

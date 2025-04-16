@@ -58,7 +58,7 @@ cargo doc -p zewif --no-deps --target-dir zewif/cargo-docs
 
 | Type          | Description                                               |
 | ------------- | --------------------------------------------------------- |
-| `ZewifTop`    | Top-level container for wallet data                       |
+| `Zewif`       | Top-level container for wallet data                       |
 | `ZewifWallet` | Complete wallet representation                            |
 | `Blob<N>`     | Fixed-size byte array (wrapper around `[u8; N]`)          |
 | `Data`        | Variable-size byte array (wrapper around `Vec<u8>`)       |
@@ -124,7 +124,7 @@ The documentation of the `zewif` crate has been successfully completed!
 
 2. **Type-Level Documentation**:
    - ✅ All major data structures are now documented, including:
-     - Core container types (`ZewifTop`, `ZewifWallet`, `Account`, etc.)
+     - Core container types (`Zewif`, `ZewifWallet`, `Account`, etc.)
      - Protocol-specific types for Transparent, Sprout, Sapling, and Orchard
      - Helper types, numeric types, and utility functions
    - ✅ All viewing key types have proper documentation where they exist in the codebase

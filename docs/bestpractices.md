@@ -81,7 +81,7 @@ The following best practices offer suggestions for those front-end and back-end 
 
 ***[Export:] Store the Entire Data Set.*** After migrating all the discrete data elements into ZeWIF, the complete wallet file should be stored as a separate [attachment](attachments.md), to ensure that nothing is lost, not even class III data. The `vendor` should be defined with a reverse of the main domain name for the wallet publisher and the `conformsTo` should be set to the best specification for the wallet or if that does not exist the central marketing page for the wallet. [[This should probably be part of the spec, and it may need to be rewritten based on what's there.]]
 
-* _Example:_ The `wallet.dat` file from `zcashd` is copied into the ZeWIF file as a blob that's linked to the `attachments`  element of `ZewifTop` as the last step of the migraiton.
+* _Example:_ The `wallet.dat` file from `zcashd` is copied into the ZeWIF file as a blob that's linked to the `attachments`  element of `Zewif` as the last step of the migraiton.
 
 ### Wallet-Specific Data
 
@@ -106,7 +106,7 @@ The following best practices offer suggestions for those front-end and back-end 
 ***[Export:] Store Almost All Witness Trees.*** Witness Trees are definitely recoverable, but they're a pain to calculate, so they should be stored as part of a ZeWIF file.
 
 * _Example:_ Zingo! maintains Witness Trees in TxMap.WitnessTrees. This information should be preserved.
-  
+
 ***[Import:] Drop Incorrect Witness Trees.*** Best practice is to recheck witness trees as they're being imported and to dump them if they're incorrect, so as to not incorporate corrupt data into the new wallet.
 
 ## Attachments
@@ -145,10 +145,10 @@ The following best practices offer suggestions for those front-end and back-end 
 
 ## Elision & Compression
 
-***[All:] Elide Thoughtfully.*** The standard use case for a ZeWIF file involves using it to migrate data between two wallets. However, ZeWIF may also be used for other purposes, such as transmitting information on the state of a wallet to an accountant. In these cases, sensitive information that is not required by the recipient (such as keys and seeds) should be elided prior to the transmission of the data. This is not currently a feature of zmigrate, but it can be accomplished by piping the output ZeWIF file through the [bc-envelope-cli-rust app](https://github.com/BlockchainCommons/bc-envelope-cli-rust). 
+***[All:] Elide Thoughtfully.*** The standard use case for a ZeWIF file involves using it to migrate data between two wallets. However, ZeWIF may also be used for other purposes, such as transmitting information on the state of a wallet to an accountant. In these cases, sensitive information that is not required by the recipient (such as keys and seeds) should be elided prior to the transmission of the data. This is not currently a feature of zmigrate, but it can be accomplished by piping the output ZeWIF file through the [bc-envelope-cli-rust app](https://github.com/BlockchainCommons/bc-envelope-cli-rust).
 
 * _Example:_ Envelope-CLI docs explain [how to redact specific information from a Gordian Envelope](https://github.com/BlockchainCommons/bc-envelope-cli-rust/blob/master/docs/VCElisionExample.md).
-  
+
 ## Reports
 
 ***[All:] Report All Failures.*** Any failures to export data should be reported to the user. This might include data purposefully excluded from the export process. Any failures to import data must be reported to the user.

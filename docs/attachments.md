@@ -16,7 +16,7 @@ Class I data is defined in the ZeWIF spec. It can be encoded by the `zewif` crat
 
 To clarify attachments may be found in two places in a ZeWIF data file:
 
-* **Top-Level Attachments.** The ZewifTop structure includes an attachment point for top-level content. This includes a copy of the original data file. Additional data not relevant to a structure attachment might also be included here.
+* **Top-Level Attachments.** The Zewif structure includes an attachment point for top-level content. This includes a copy of the original data file. Additional data not relevant to a structure attachment might also be included here.
 * **Structure Attachments.** Individual lower-level structures also include attachments points when there was thought to be reason to include additional data or metadata on the topic that nonetheless was not Class I.
 
 After a ZeWIF data file is output, additional attachments could also be made using the [`envelope-cli-rust` tool](https://github.com/BlockchainCommons/bc-envelope-cli-rust) or other means to adjust a Gordian Envelope file.
@@ -29,7 +29,7 @@ Nonetheless, the following major points are useful as an overview of Gordian Env
 
 * **Envelope Uses CBOR.** Gordian Envelope is built using CBOR, a [well-specified](https://cbor.io/) and mature binary data representation format. Every Envelope is not only [legal CBOR](https://datatracker.ietf.org/doc/html/rfc8949), but also [legal dCBOR](https://datatracker.ietf.org/doc/draft-mcnally-deterministic-cbor/), a deterministic version of CBOR. Every Envelope, and therefore every ZeWIF file, can be read using CBOR tools such as [cbor.me](https://cbor.me/). (But don't read ZeWIF files containing private keys in an online site!)
 * **Envelope Stores Data in a Merkle-Like Tree.** Gordian Envelope is a branching hierarchical structure. Central nodes lead to multiple branches and eventually to leaves. This allows for the organized storage of data. The tree is Merkle-like because branches can be hashed and that hash can be stored in a node to prove the data that lies under it (which may not be relevant for the first iteration of ZeWIF, but which allows for powerful elision and signatures).
-* **Envelope is Built on Semantic Triples.** Data is stored in a Gordian Envelope as a sematic triple of subject-predicate-object. Each predicate-object pair is called an assertion, which applies to a subject. A node connects together a subject and zero or more assertions about that subject. 
+* **Envelope is Built on Semantic Triples.** Data is stored in a Gordian Envelope as a sematic triple of subject-predicate-object. Each predicate-object pair is called an assertion, which applies to a subject. A node connects together a subject and zero or more assertions about that subject.
 
 ```mermaid
 graph LR
@@ -121,7 +121,7 @@ This feature is a crucial element of an attachment.
 
 ## Attachments Technical Overview
 
-Attachments are fully described in [BCR-2023-006](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2023-006-envelope-attachment.md). They make use of Envelope wrapping (described above) and of [known values](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2023-002-known-value.md), which are unique unsigned 64-bit integers that are registered with Blockchain Commons and used to refer to specific, repeating concepts in a precise, compact way; known values are encoded in CBOR with the `#6.40000` tag. 
+Attachments are fully described in [BCR-2023-006](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2023-006-envelope-attachment.md). They make use of Envelope wrapping (described above) and of [known values](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2023-002-known-value.md), which are unique unsigned 64-bit integers that are registered with Blockchain Commons and used to refer to specific, repeating concepts in a precise, compact way; known values are encoded in CBOR with the `#6.40000` tag.
 
 * An attachment is an assertion in an envelope, meaning that it contains a predicate and an object.
 * The predicate of an attachment is known value #50, which is registered as `attachment`.
@@ -132,7 +132,7 @@ When creating a payload for a ZeWIF attachment you might simply dump in the othe
 * Once an attachment has been created, the Envelope is wrapped, turning it into the subject of a new Envelope.
 * A `vendor` assertion must be added. This is a predicate of known value #51 with the object of a string for the vendor name.
 * A `conformsTo` assertion may be added. (It's [highly suggested](https://github.com/BlockchainCommons/zmigrate/blob/master/docs/bestpractices.md#attachments)) for ZeWIF attachments.) This is a predicate of known value #52 with the object being a string that identifies the format of the attachment.
- 
+
 That's it! You have an attachment! And, if you're using the `zewif` crate you don't even need to know these specifics, you just use the `attachments.add` function:
 ```
 attachments.add(payload,vendor,conforms_to);
@@ -142,13 +142,13 @@ You should create attachments for all of the data in your wallet that is not def
 
 ### Defining `vendor` and `conformsTo`
 
-**`vendor`** must be a unique name identifying the vendor of the wallet. It's suggested as a reverse domain name, such as `org.zingolabs`. 
+**`vendor`** must be a unique name identifying the vendor of the wallet. It's suggested as a reverse domain name, such as `org.zingolabs`.
 
 **`conformsTo`** is not required, but it is highly recommended, especially for ZeWIF data, since it's crucial that it be understandable in the  future. It's recommended as a URL that contains the specification describing what the data is and how it's encoded. By storing this info at a URL, you can sure it's recoverable in the far future. Even if your site is gone, archive.org or like services may have a copy.
 
 ### Versioning `conformsTo`
 
-Your `conformsTo` should be versioned so that a user or importer can look up the precise version that data was encoded with. One way to do so is to ensure that the URL referred to in `conformsTo` includes a version, with different versions going to different URLs. This will allow for the future lookup of a specific version of the `conformsTo` URL using a service such as archive.org. 
+Your `conformsTo` should be versioned so that a user or importer can look up the precise version that data was encoded with. One way to do so is to ensure that the URL referred to in `conformsTo` includes a version, with different versions going to different URLs. This will allow for the future lookup of a specific version of the `conformsTo` URL using a service such as archive.org.
 
 ### Adding Other Metadata
 
@@ -158,7 +158,7 @@ Other assertions can be added to the wrapped Envelope. This might include notes 
 
 ## Encoding an Attachment
 
-Attachments are defined in `zewif/attachments.rs`. 
+Attachments are defined in `zewif/attachments.rs`.
 
 Attachments can be added with the `attachments.add` function, which has arguments of an Envelope payload, a string `vendor`, and an optional string `conforms_to`.
 
@@ -194,9 +194,9 @@ An attachment can be added to a standard data structure as follows:
 
 ### Encoding a Top-Level Attachment
 
-Attaching something to the top-level `ZewifTop` structure works just the same. As seen in [`zewif_top.rs`](https://github.com/BlockchainCommons/zewif/blob/master/src/zewif_top.rs), `attachments` is one of the top-level structures:
+Attaching something to the top-level `Zewif` structure works just the same. As seen in [`zewif_impl.rs`](https://github.com/BlockchainCommons/zewif/blob/master/src/zewif_impl.rs), `attachments` is one of the top-level structures:
 ```
-pub struct ZewifTop {
+pub struct Zewif {
     wallets: HashMap<ARID, ZewifWallet>,
     transactions: HashMap<TxId, Transaction>,
     attachments: Attachments,

@@ -11,7 +11,7 @@
 use std::collections::{HashMap, HashSet};
 
 use anyhow::Result;
-use zewif::{ReceiverType, ZewifTop, ZewifWallet};
+use zewif::{ReceiverType, Zewif, ZewifWallet};
 use zewif_zcashd::{BDBDump, ZcashdDump, ZcashdParser, ZcashdWallet};
 
 // Import shared test utilities
@@ -124,7 +124,7 @@ fn extract_unified_addresses_from_zcashd(wallet: &ZcashdWallet) -> HashMap<Strin
 ///
 /// # Returns
 /// - HashMap mapping address strings to their associated metadata
-fn extract_unified_addresses_from_zewif(wallet: &ZewifWallet) -> HashMap<String, UnifiedAddressInfo> {
+fn extract_unified_addresses_from_zewif_wallet(wallet: &ZewifWallet) -> HashMap<String, UnifiedAddressInfo> {
     let mut unified_addresses = HashMap::new();
 
     // Iterate through all accounts in the wallet
@@ -161,17 +161,17 @@ fn extract_unified_addresses_from_zewif(wallet: &ZewifWallet) -> HashMap<String,
 /// container, which may contain multiple wallets.
 ///
 /// # Parameters
-/// - `zewif_top`: Reference to a ZeWIF top-level container
+/// - `zewif`: Reference to a ZeWIF top-level container
 ///
 /// # Returns
 /// - HashMap mapping address strings to their associated metadata across all wallets
-fn extract_unified_addresses_from_zewif_top(zewif_top: &ZewifTop) -> HashMap<String, UnifiedAddressInfo> {
+fn extract_unified_addresses_from_zewif(zewif: &Zewif) -> HashMap<String, UnifiedAddressInfo> {
     let mut all_addresses = HashMap::new();
 
     // Get all wallets from the top container
-    for wallet in zewif_top.wallets() {
+    for wallet in zewif.wallets() {
         // Extract addresses from each wallet and combine them
-        let wallet_addresses = extract_unified_addresses_from_zewif(wallet);
+        let wallet_addresses = extract_unified_addresses_from_zewif_wallet(wallet);
         all_addresses.extend(wallet_addresses);
     }
 
@@ -210,10 +210,10 @@ fn test_unified_address_detection() -> Result<()> {
         }
 
         // Convert to ZeWIF format
-        let zewif_top = zewif_zcashd::migrate_to_zewif(&zcashd_wallet)?;
+        let zewif = zewif_zcashd::migrate_to_zewif(&zcashd_wallet)?;
 
         // Extract unified addresses from the migrated ZeWIF wallet
-        let addresses_after = extract_unified_addresses_from_zewif_top(&zewif_top);
+        let addresses_after = extract_unified_addresses_from_zewif(&zewif);
 
         // Print information about whether unified addresses were found after migration
         if addresses_after.is_empty() {
@@ -265,10 +265,10 @@ fn test_unified_address_metadata_preservation() -> Result<()> {
         }
 
         // Convert to ZeWIF format
-        let zewif_top = zewif_zcashd::migrate_to_zewif(&zcashd_wallet)?;
+        let zewif = zewif_zcashd::migrate_to_zewif(&zcashd_wallet)?;
 
         // Extract unified addresses from the migrated ZeWIF wallet
-        let addresses_after = extract_unified_addresses_from_zewif_top(&zewif_top);
+        let addresses_after = extract_unified_addresses_from_zewif(&zewif);
 
         // Verify metadata preservation for each address
         for (addr_str, before_info) in &addresses_before {
@@ -364,10 +364,10 @@ fn test_unified_address_account_assignment() -> Result<()> {
         }
 
         // Convert to ZeWIF format
-        let zewif_top = zewif_zcashd::migrate_to_zewif(&zcashd_wallet)?;
+        let zewif = zewif_zcashd::migrate_to_zewif(&zcashd_wallet)?;
 
         // Get the first wallet from the top container
-        let wallet = zewif_top.wallets().iter().next().expect("No wallet found");
+        let wallet = zewif.wallets().iter().next().expect("No wallet found");
 
         // Check if this wallet has unified accounts
         let has_unified_accounts = zcashd_wallet.unified_accounts().is_some();

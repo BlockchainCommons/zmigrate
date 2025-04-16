@@ -315,12 +315,12 @@ fn extract_change_addresses(_wallet: &ZcashdWallet) -> HashSet<String> {
 /// transaction in their relevant_transactions list.
 ///
 /// # Arguments
-/// * `zewif_wallet` - The ZewifTop wallet to check
+/// * `zewif_wallet` - The Zewif wallet to check
 /// * `tx_id` - The transaction ID to look for
 ///
 /// # Returns
 /// * `usize` - The number of accounts the transaction is assigned to
-fn count_accounts_for_transaction(zewif_wallet: &zewif::ZewifTop, tx_id: &zewif::TxId) -> usize {
+fn count_accounts_for_transaction(zewif_wallet: &zewif::Zewif, tx_id: &zewif::TxId) -> usize {
     let mut account_count = 0;
 
     for wallet in zewif_wallet.wallets() {

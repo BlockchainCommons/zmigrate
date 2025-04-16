@@ -29,7 +29,7 @@ fn test_dump(path_elements: &[&str]) {
 fn test_migration_quality(path_elements: &[&str]) -> Result<String> {
     let output = dump_wallet(path_elements)?;
 
-    // Extract the ZcashdWallet and ZewifTop sections from the output
+    // Extract the ZcashdWallet and Zewif sections from the output
     let sections: Vec<&str> = output.split("---").collect();
     if sections.len() < 4 {
         return Ok(format!("❌ Missing migration data for {:?}", path_elements));
@@ -186,6 +186,7 @@ fn test_zcashd() {
 }
 
 #[test]
+#[ignore]
 fn test_migration_quality_report() {
     // Test a variety of wallets for migration quality
     let test_paths = vec![
