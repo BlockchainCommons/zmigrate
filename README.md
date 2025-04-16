@@ -172,40 +172,47 @@ You can import a key by running the following command with that individual’s f
 
 ## Notes Work in Progress
 
+### Get help
 
-Convert from zcashd wallet.dat to Zewif binary:
+```
+zmigrate --help
+```
+
+### Convert from zcashd wallet.dat to Zewif binary
 
 ```
 zmigrate --from zcashd ./demo_wallet.dat ./demo_wallet.zewif
 ```
 
-Convert from zcashd wallet.dat to Zewif binary (compressed):
+### Convert from zcashd wallet.dat to Zewif binary (compressed)
 
 ```
 zmigrate --compress --from zcashd ./demo_wallet.dat ./demo_wallet_compressed.zewif
 ```
 
-Convert from zcashd wallet.dat to Zewif UR:
+### Convert from zcashd wallet.dat to Zewif UR
 
 ```
 zmigrate --from zcashd --to ur ./demo_wallet.dat ./demo_wallet_ur.txt
+
 zmigrate --compress --from zcashd --to ur ./demo_wallet.dat ./demo_wallet_compressed_ur.txt
 ```
 
-Convert from Zewif UR to envelope notation:
+### Convert from Zewif UR to envelope notation
 
 ```
 envelope format <./demo_wallet_ur.txt >demo_wallet_format.txt
+
 envelope format <./demo_wallet_compressed_ur.txt >demo_wallet_compressed_format.txt
 ```
 
-Format a zcashd wallet.dat to stdout:
+### Format a zcashd wallet.dat to stdout
 
 ```
 zmigrate --compress --from zcashd --to format ./demo_wallet.dat -
 ```
 
-Format a compressed zcashd wallet.dat to stdout:
+### Format a compressed zcashd wallet.dat to stdout
 
 ```
 zmigrate --from zcashd --to format ./demo_wallet.dat -
