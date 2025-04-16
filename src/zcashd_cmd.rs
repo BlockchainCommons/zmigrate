@@ -123,6 +123,23 @@ fn output_envelope(envelope: &Envelope, output: &mut String) {
     writeln!(output, "---").unwrap();
 }
 
+pub fn zcashd_to_zewif(file: &Path) -> Result<Zewif> {
+    let db_dump = BDBDump::from_file(file).context("Parsing BerkeleyDB file")?;
+
+    let zcashd_dump = ZcashdDump::from_bdb_dump(&db_dump).context("Parsing Zcashd dump")?;
+
+    let (zcashd_wallet, unparsed_keys) =
+        ZcashdParser::parse_dump(&zcashd_dump).context("Parsing Zcashd dump")?;
+
+    let zewif = zewif_zcashd::migrate_to_zewif(&zcashd_wallet).context("Migrating to Zewif")?;
+
+    if !unparsed_keys.is_empty() {
+        anyhow::bail!("Unparsed keys: {:?}", unparsed_keys);
+    }
+
+    Ok(zewif)
+}
+
 pub fn dump_wallet(file: &Path) -> Result<String> {
     let db_dump = BDBDump::from_file(file).context("Parsing BerkeleyDB file")?;
 
