@@ -21,6 +21,7 @@ hex = "0.4.3"
 owo-colors = "4.1.0"
 clap = { version = "^4.4.3", features = ["derive", "unstable-styles"] }
 anstyle = "^1.0.1"
+rpassword = "7.3.1"
 
 [dev-dependencies]
 regex = "1.10.2"
