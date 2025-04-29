@@ -1,15 +1,15 @@
-
 mod styles;
 
+use anyhow::{Context, Result};
 use bc_envelope::prelude::*;
 use clap::Parser as ClapParser;
-use zewif::ZewifEnvelope;
-use zmigrate::zcashd_cmd::zcashd_to_zewif;
 use clap::ValueEnum;
-use anyhow::{Context, Result};
+use rpassword::prompt_password;
 use std::fs::File;
 use std::io::{self, Write};
 use std::path::PathBuf;
+use zewif::ZewifEnvelope;
+use zmigrate::zcashd_cmd::zcashd_to_zewif;
 
 /// Supported input formats for wallet migration
 #[derive(Debug, Clone, ValueEnum)]
@@ -17,8 +17,11 @@ pub enum InputFormat {
     /// Input from a `zcashd` wallet
     Zcashd,
 
-    /// Input from a `zingo` wallet
+    /// Input from a `zingo` wallet (unimplemented)
     Zingo,
+
+    /// Input from a `zewif` wallet
+    Zewif,
 }
 
 /// Supported output formats for wallet migration
@@ -97,10 +100,17 @@ fn inner_main() -> Result<()> {
             if cli.compress {
                 ze.compress()?;
             }
-
+            if cli.encrypt {
+                let password = prompt_password("Enter encryption password: ")?;
+                let key = ZewifEnvelope::derive_encryption_key(password);
+                ze.encrypt(&key)?;
+            }
             let mut output: Box<dyn Write> = match cli.output_file.as_str() {
                 "-" => Box::new(io::stdout()),
-                path => Box::new(File::create(path).with_context(|| format!("Failed to create output file: {}", path))?),
+                path => Box::new(
+                    File::create(path)
+                        .with_context(|| format!("Failed to create output file: {}", path))?,
+                ),
             };
             match cli.to {
                 OutputFormat::Zewif => {
@@ -115,6 +125,50 @@ fn inner_main() -> Result<()> {
                 }
                 OutputFormat::Dump => {
                     writeln!(output, "{:#?}", zewif)?;
+                }
+            }
+        }
+        InputFormat::Zewif => {
+            // Read the input file as CBOR and parse as Envelope
+            let input_data = std::fs::read(&input_path)
+                .with_context(|| format!("Failed to read input file: {}", cli.input_file))?;
+            let envelope = Envelope::try_from_cbor_data(input_data)
+                .with_context(|| "Failed to parse input as Envelope")?;
+            let mut ze = ZewifEnvelope::new(envelope)?;
+            // If encrypted, prompt for password and decrypt
+            if ze.is_encrypted() {
+                let password = prompt_password("Enter decryption password: ")?;
+                let key = ZewifEnvelope::derive_encryption_key(password);
+                ze.decrypt(&key)?;
+            }
+            // If compressed, uncompress
+            if ze.is_compressed() {
+                ze.uncompress()?;
+            }
+            let mut output: Box<dyn Write> = match cli.output_file.as_str() {
+                "-" => Box::new(io::stdout()),
+                path => Box::new(
+                    File::create(path)
+                        .with_context(|| format!("Failed to create output file: {}", path))?,
+                ),
+            };
+            match cli.to {
+                OutputFormat::Format => {
+                    writeln!(output, "{}", ze.envelope().format())?;
+                }
+                OutputFormat::Zewif => {
+                    output.write_all(&ze.envelope().to_cbor_data())?;
+                }
+                OutputFormat::UR => {
+                    let envelope_ur = ze.envelope().ur_string();
+                    writeln!(output, "{}", envelope_ur)?;
+                }
+                OutputFormat::Dump => {
+                    // Try to reconstruct Zewif for debug output
+                    match zewif::Zewif::try_from(ze.envelope().clone()) {
+                        Ok(zewif) => writeln!(output, "{:#?}", zewif)?,
+                        Err(_) => writeln!(output, "Could not decode Zewif from envelope.")?,
+                    }
                 }
             }
         }
