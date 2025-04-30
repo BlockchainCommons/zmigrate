@@ -1,6 +1,6 @@
 # Best Practices for Importing & Exporting Wallet Data
 
-The ZeWIF format is a specification for the import and export of Zcash wallet data, enabling interoperability among walls, and creating freedom for users. However, the ZeWIF format also requires work from individual developers who want to interop their data, whether they are using the ZeWIF format or not.
+The ZeWIF format is a specification for the import and export of Zcash wallet data, enabling interoperability among wallets and creating freedom for users.
 
 ```mermaid
 graph TD
