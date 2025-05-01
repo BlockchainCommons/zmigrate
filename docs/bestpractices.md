@@ -90,21 +90,17 @@ When a data type is output to a ZeWIF Envelope, it will be marked with an approp
 
 ***[Export:] Store the Entire Data Set.*** After migrating all the discrete data elements into ZeWIF, the complete wallet file should be stored as a separate [attachment](attachments.md), to ensure that nothing is lost, not even class III data. The `vendor` should be defined with a reverse of the main domain name for the wallet publisher and the `conformsTo` should be set to the best specification for the wallet or if that does not exist the central marketing page for the wallet. The attachment should be placed as the first `attachments` element of the top-level `Zewif` object.
 
-* _Example:_ The `wallet.dat` file from `zcashd` can be copied into the ZeWIF file as a blob that's linked to the `attachments`  element of `Zewif` as the last step of the migration.
+* _Example:_ This may not be necessary for `zcashd` or `zingo` as we believe they were entirely converted as part of the development process for ZeWIF. However, for new, third-party wallets, we suggest a blob of the entire data set be stored in the first `attachments` element of `Zewif`, as described above.
 
 ### Wallet-Specific Data
 
 ***[Export:] Drop Wallet-Specific Configuration.*** Wallet-specific configuration is an example of class III data, as it's no longer needed when the data is removed from the wallet. It can be dropped as a result.
 
-* _Example:_ Zecwallet stores a spam threshold and a memo download option in its `WalletOptions`. These can be ignored when migrating the wallet data.
-
-***[All:] Store the Wallet Version.*** Despite being wallet-specific information, the wallet name and wallet version should be always be added to ZeWIF as metadata, _supplementing_ (not replacing) any wallet name and version already connected to the file. This creates a provenance chain for the ZeWIF file, identifying all wallets where the data has been used and allowing future users to debug issues that might have originated with a specific wallet. [[This should probably be in the spec too, and this best practice should be edited when it's there.]] To ensure this provenance chain, wallets importing ZeWIF data should also store information on any previous wallets, so that it can be re-exported as part of that chain.
-
-* _Example:_ A ZeWIF file originated with `zcashd 6.1.0`. When data is exported from `zcashd`, the ZeWIF file is marked appropriately. That data is later imported into the Zingo! wallet, which correctly preserves the fact that the data was previously held by `zcashd`. When the data is later reexported from Zingo!, it's marked with `zingo` and `v1.12.1`. Both versions will be seen (and imported) by the next wallet the user chooses to use.
+* _Example:_ Zecwallet stores a spam threshold and a memo download option in its `WalletOptions`. These can be ignored when migrating the wallet data. But of course the entire wallet data should be stored as class III data as a best practice.
 
 ### Calculated & Downloaded Data
 
-***[Export:] Store All Transaction Information.*** Different wallets store different information regarding transactions. Some of it is recoverable from the blockchain, some of it is not. Nonetheless, all transaction information should be stored, whether it's recoverable or not. Storing nonrecoverable information is obviously a requirement. Storing recoverable information keeps the new wallet from having to look up information on the blockchain (which is a privacy concern, as noted below). Storing everything held by a wallet ensures that you don't make a mistake and accidently omit something because you thought it was recoverable and it was not.
+***[Export:] Store All Transaction Information.*** Different wallets store different information regarding transactions. Some of it is recoverable from the blockchain, some of it is not. Nonetheless, all transaction information should be stored, whether it's recoverable or not. Storing nonrecoverable information is obviously a requirement. Storing recoverable information keeps an importing wallet from having to look up information on the blockchain (which is a privacy concern, as noted below). Storing everything held by a wallet ensures that you don't make a mistake and accidently omit something because you thought it was recoverable and it was not.
 
 * _Example:_ `zcashd` mostly stores nonrecoverable information regarding transactions, such as redeem scripts, but it also stores recipient addresses, which are theoretically recoverable with an outgoing viewing key. The "theoretical" in that statement is exactly why _all_ transaction data should be stored.
 
@@ -122,11 +118,9 @@ When a data type is output to a ZeWIF Envelope, it will be marked with an approp
 
 ***[Export:] Store Undefined Data with Attachments.*** As noted above in ***Store Data Not Included in the Spec*** all data that is considered important should be exported. If data is not in the spec, it should be instead stored as an [attachment](attachments.md).
 
-* _Example:_ [an example of something that didn't make it into the ZeWIF spec, but which we still suggest storing.][which just might be a repeat of the above example]
+* _Example:_ As noted above, the entire modern data set from `zcashd` was converted as first-class data. Other wallets may find that they have additional data, such as information on `swaps` stored by YWallet. This should be stored as second-class data using attachments.
 
-***[Export:] Simplify Data in Attachments.*** Do your best to simplify any data you put into an attachment. At a minimum you should ***Break Apart Composite Data*** as described above, but you should also do your best to regularize it and otherwise make it easily accessible to other developers or users who may be accessing the data in the future.
-
-* _Example:_ [an example of something that didn't make it into the ZeWIF spec that could benefit from normalization._
+***[Export:] Simplify Data in Attachments.*** Do your best to simplify any data you put into an attachment. At a minimum you should ***Break Apart Composite Data*** unless it's part of a Zcash spec, as described above, but you should also do your best to regularize it and otherwise make it easily accessible to other developers or users who may be accessing the data in the future.
 
 ***[Export:] Document Attachments Online.*** It is recommended that  a `conformsTo` assertion be included with each attachment. This is even more highly recommended as a best practice when storing class II data into attachments. Ideally, the `conformsTo` should be a web page that specifies exactly how all attachments data is stored: what it is and how it's encoded. By storing this data in a web page you can ensure that it's accessible far into the future: even if your web page is gone, it can be retrieved through a service such as archive.org.
 
@@ -134,9 +128,9 @@ When a data type is output to a ZeWIF Envelope, it will be marked with an approp
 
 * _Example:_ ZSampleWallet uses a `conformsTo` URL for all of its attachments of `https://www.zsamplewallet/spec/v1.0/`. When they add a new attachment, they replace their `conformsTo` URLs with `https://www.zsamplewallet/spec/v1.1/`.
 
-***[Export:] Document Attachments in ZeWIF with other Metadata.*** Many attachments will just be a blob of wrapped data, tagged with `vendor` and (optionally) `conformsTo` assertions. However other assertions can be added to the wrapped data as metadata, such as the `date` assertion suggested above. Plain-text names, descriptions, and even instructions on how to unarchive the data are also possible. Whenever possible, information that could help a future importer to read and understand the data should be included.
+***[Export:] Document Attachments in ZeWIF with other Metadata.*** Many attachments will just be a blob of wrapped data, tagged with `vendor` and (optionally) `conformsTo` assertions. However other assertions can be added to the wrapped data as metadata. For example, a `date` assertion could be added to an attachment as an alternate way to define a version. Plain-text names, descriptions, and even instructions on how to unarchive the data are also possible. Whenever possible, information that could help a future importer to read and understand the data should be included.
 
-* _Example:_ [currently it doesn't look like this is possible with the zewif crate, so we need to either revise that or remove this suggestion]
+* _Example:_ The `payload` of each `attachment` is an Envelope object. A variety of assertions may be added to it, as with any Envelope. 
 
 ## Encryption
 
@@ -152,6 +146,8 @@ When a data type is output to a ZeWIF Envelope, it will be marked with an approp
 
 * _Example:_ The Envelope CLI may be installed using `cargo install bc-envelope-cli`. The ZeWIF file can then be encrypted using [symmetric encryption](https://github.com/BlockchainCommons/bc-envelope-cli-rust/blob/master/docs/BasicExamples.md#example-4-symmetric-encryption) (in which case the key must be carefully preserved) or [SSKR](https://github.com/BlockchainCommons/bc-envelope-cli-rust/blob/master/docs/SSKRExample.md) (in which case the envelopes with shares should be separated, as the data can be encrypted if a threshold of the envelopes are together).
 
+[[I BELIEVE THIS CHANGED, WE JUST NEED AN EXAMPLE OF THE ZMIGRATE FLAG FOR ENCRYPTION]]
+
 ## Elision & Compression
 
 ***[All:] Elide Thoughtfully.*** The standard use case for a ZeWIF file involves using it to migrate data between two wallets. However, ZeWIF may also be used for other purposes, such as transmitting information on the state of a wallet to an accountant. In these cases, sensitive information that is not required by the recipient (such as keys and seeds) should be elided prior to the transmission of the data. This is not currently a feature of zmigrate, but it can be accomplished by piping the output ZeWIF file through the [bc-envelope-cli-rust app](https://github.com/BlockchainCommons/bc-envelope-cli-rust).
@@ -164,4 +160,4 @@ When a data type is output to a ZeWIF Envelope, it will be marked with an approp
 
 ***[Import:] Flag Asset Failures with Highlighting.*** If a failure to import data results in keys or seeds not being imported, this must be clearly reported with red, bold, or otherwise highlighted warnings, as it could result in a loss of assets.
 
-* _Example:_ ZTestWallet doesn't know what to do with keys not associated with seeds, so it does not import them. This is flagged for the user with a bold warning so that they can either sweep their funds prior to moving to the new wallet or else choose a different wallet that better meets their needs. The user decides to sweep, and so when they return with a new post-sweep ZeWIF file, it no longer reports errors. This allows them to begin using the new wallet with confidence.
+* _Example:_ ZSampleWallet doesn't know what to do with keys not associated with seeds, so it does not import them. This is flagged for the user with a bold warning so that they can either sweep their funds prior to moving to the new wallet or else choose a different wallet that better meets their needs. The user decides to sweep, and so when they return with a new post-sweep ZeWIF file, it no longer reports errors. This allows them to begin using the new wallet with confidence.
