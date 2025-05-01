@@ -86,11 +86,11 @@ When a data type is output to a ZeWIF Envelope, it will be marked with an approp
 
 ***[Export:] Store Data Not Included in the Spec.*** The ZeWIF project recognizes three classes of data: important data used in multiple wallets (class I); important data used by one or few wallets (class II); and unimportant data (class III). It only specifically covers class I data, which should include all data required for asset recovery. Class II data remains important, but because it's wallet-specific, it falls on individual wallet developers to decide which of their data is class II and store this data when migrating to ZeWIF. This is done by storing class II data in [attachments](attachments.md).
 
-* _Example:_ [an example of something that didn't make it into the ZeWIF spec, but which we still suggest storing.]
+* _Example:_ The entire modern data set from `zcashd` was converted as first-class data. Other wallets may find that they have additional data, such as information on `swaps` stored by YWallet. This should be stored as second-class data using attachments.
 
-***[Export:] Store the Entire Data Set.*** After migrating all the discrete data elements into ZeWIF, the complete wallet file should be stored as a separate [attachment](attachments.md), to ensure that nothing is lost, not even class III data. The `vendor` should be defined with a reverse of the main domain name for the wallet publisher and the `conformsTo` should be set to the best specification for the wallet or if that does not exist the central marketing page for the wallet. [[This should probably be part of the spec, and it may need to be rewritten based on what's there.]]
+***[Export:] Store the Entire Data Set.*** After migrating all the discrete data elements into ZeWIF, the complete wallet file should be stored as a separate [attachment](attachments.md), to ensure that nothing is lost, not even class III data. The `vendor` should be defined with a reverse of the main domain name for the wallet publisher and the `conformsTo` should be set to the best specification for the wallet or if that does not exist the central marketing page for the wallet. The attachment should be placed as the first `attachments` element of the top-level `Zewif` object.
 
-* _Example:_ The `wallet.dat` file from `zcashd` is copied into the ZeWIF file as a blob that's linked to the `attachments`  element of `Zewif` as the last step of the migraiton.
+* _Example:_ The `wallet.dat` file from `zcashd` can be copied into the ZeWIF file as a blob that's linked to the `attachments`  element of `Zewif` as the last step of the migration.
 
 ### Wallet-Specific Data
 
