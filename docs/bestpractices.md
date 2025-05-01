@@ -35,19 +35,28 @@ graph TD
     N --> B
     N --> M
 ```
-As the above diagram shows, the `zewif` Rust crate lies at the center of the ZeWIF system. It creates in-memory representations of data from a variety of inputs and can output that abstracted data in a numbers of forms. Obviously, it can accept input from ZeWIF files and it can output to ZeWIF files. However, that's just part of the process. Individual developers can also choose to use create front ends that interface their own wallet data to `zewif` and back ends that export the data from `zewif` to their own wallet.
+As the above diagram shows, the `zewif` Rust crate lies at the center of the ZeWIF system. It creates in-memory representations of data from a variety of inputs and can output that abstracted data in a numbers of forms. Obviously, it can accept input from ZeWIF files and it can output to ZeWIF files. However, that's just part of the process. Individual developers can also choose to use create front ends that import data from their wallets to `zewif` and back ends that export the data from `zewif` to their wallets.
 
 The following best practices offer suggestions for those front-end and back-end wallet developers, to ensure that their data remains not just maximally interoperable, but also maximally accessible, both now and in the far future.
 
 ## The Core Format
 
-***[Export:] Use Defined CBOR Tags.*** If there is a ZeWIF-defined CBOR tag, known value, or other specified representation for a piece of data that is being migrated, it should be used, even if it requires converting the data type as part of the migration.
+***[Export:] Use Defined Object Types.*** The `zewif` crate allows for the creation of a variety of Zcash objects. Find the appropriate type for your data and use the `::new` function to instantiate it. This will ensure that your data is in the most standardized form. 
 
-* _Example:_ [an example of a CBOR tag and something from a wallet that should be stored in that format, especially if the wallet stores it with a different data type]
+When a data type is output to a ZeWIF Envelope, it will be marked with an appropriate `isA` type using the Envelope `add_type` function to self-identify the Envelope subject.
 
-***[Export:] Break Apart Composite Data.*** If a single datum in a wallet contains several individual keys and values, they should be separated out before migrating them, even if they're related.
+* _Example:_
 
-* _Example:_ `zcashd`'s CKeyMetaData contains a seed fingerprint (uint256), a creation date (UNIX timestamp), and an HD/ZIP-32 Keypath (string). Those datums should each be individually stored when migrated.
+[[SHOW THE CONSTRUCTOR FUNCTION]]
+[[SHOW THE ENVELOPE OUTPUT]]
+
+***[Export:] Break Apart Composite Data When Appropriate.*** If a single datum in a wallet contains several individual keys and values, they may need to be broken apart, depending on the specifics of the data, rather than being stored as a single blob. When you consult the ZeWIF docs you'll find one of three situations:
+
+1. A data type exists for the combined datum. This will happen when Zcash specifies the composite datum. In this case, store the datum using the combined data type.
+2. Data types exists for each of the individual parts of the datum. In this case, store each of the individual data elements using the individual data type.
+3. There are no data types for some or all of the individual parts of the data. In this case, break apart the datum as much as makes sense. For any data elements that exist, store that data appropriately. For the rest, store each individually as an attachment, following best practices.
+
+* _Example:_ `zcashd`'s CKeyMetaData contains a seed fingerprint (uint256), a creation date (UNIX timestamp), and an HD/ZIP-32 Keypath (string). ZeWIF allows for the individual storage of `version`, `create_time`, `hd_keypath`, and `seed_fp` as part of the `KeyMetadata` structure. It's the same metadata (at least for `zcashd`), but by storing the content individually, instead of as a blob, we make them more accessible in the future.
 
 ***[Import:] Destroy ZeWIF Files after Importing.*** After importing a ZeWIF file, you should give users the option to destroy it, as it will usually contain sensitive information. An alternative is to ***Re-Encrypt for Storage*** as discussed below.
 
@@ -55,7 +64,7 @@ The following best practices offer suggestions for those front-end and back-end 
 
 ***[All:] Use Account Abstractions.*** Some Zcash keys are based on system data, while others are HD keys derived from a seed. However, users of most wallets instead see keys grouped into accounts, which may contain related HD keys, unrelated system-randomness keys, or multiples of any of these. Since accounts represent a crucial usability tool for users to understand what is in their account and what it does, they should be preserved both through export and import, even if they represent an abstraction without any "real" meaning for how the keys relate.
 
-* _Example:_ ZeWIF includes an `account` structure and notes that the following elements must be preserved: unique account identifier; human-readable name; addresses associated with the account; transactions linked to the account; sent output information; and extended key information.
+* _Example:_ ZeWIF includes an `account` data type, which is defined in `account.rs`. It allows for the storage of `index`, `name`, `zip32_account_id`, `addresses`, `relevant_transactions`, `sapling_sent_outputs`, and `orchard_sent_outputs`. Attachments may also be added for non-standard data related to an account for a psecific wallet.
 
 ***[Export:] Store Existing Assets As They Are, Usually.*** In the vast majority of cases, the migration process should happen without making any changes on the blockchain. This is not the time to do other clean-up, except in a few important cases (noted below). You want to preserve the data being imported as it is, because it was theoretically in a known, working state.
 
