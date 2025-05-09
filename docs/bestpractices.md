@@ -36,35 +36,37 @@ graph TD
     N --> B
     N --> M
 ```
-As the above diagram shows, the `zewif` Rust crate lies at the center of the ZeWIF system. It creates in-memory representations of data from a variety of inputs and can output that abstracted data in a numbers of forms. Obviously, it can accept input from ZeWIF "Envelope" files and it can output to ZeWIF Envelope files. However, that's just part of the process. Individual developers can also choose to use create front ends that import data from their wallets to `zewif` and back ends that export the data from `zewif` to their wallets.
 
-The following best practices offer suggestions for those front-end and back-end wallet developers, to ensure that their data remains not just maximally interoperable, but also maximally accessible, both now and in the far future.
+As the above diagram shows, the `zewif` Rust crate lies at the center of the ZeWIF system. It creates in-memory representations of data from a variety of inputs and can output that abstracted data in a number of forms. Obviously, it can accept input from ZeWIF files (based on Gordian Envelope) and it can output to ZeWIF files. However, that's just part of the process. Individual developers can also choose to use create front ends that import data from their wallets to `zewif` and back ends that export the data from `zewif` to their wallets.
+
+The following best practices offer suggestions for those front-end and back-end wallet developers, to ensure that their data remains not just maximally interoperable, but also maximally accessible, now and in the far future.
 
 ## The Core Format
 
-***[Export:] Use Defined Object Types.*** The `zewif` crate allows for the creation of a variety of Zcash objects. Find the appropriate type for your data and use the `::new` function to instantiate it. Individual properties can then be set. This will ensure that your data is in the most standardized form.
+***[Export:] Use Defined Object Types.*** The `zewif` crate allows for the creation of a variety of Zcash-specific objects. Some of these have `::new` functions while others are instantiated by converting them from other (frequently serialized) forms using `ZcashType::from(other_form)` functions. A few allow individual properties to be set after instantiation.
 
-When a data type is output to a ZeWIF Envelope, it will be marked with an appropriate `isA` type using the Envelope `add_type` function to self-identify the Envelope subject.
+A ZeWIF file is a hierarchy of Gordian Envelopes, and some of the `zewif` structures are defined entirely in terms of assertions on envelopes. These are marked with an `isA` assertion that identifies their type, and this is checked whenever the data is deserialized. Other (usually simpler) structures are defined as CBOR objects, which are always the leaves of an envelope tree.
 
 * _Example:_ The following examples show creations of an account and an address:
-```
+
+```rust
 let mut account = Account::new();
 let t_addr = transparent::Address::new("t1exampleaddress");
 ```
 
-***[Export:] Break Apart Composite Data When Appropriate.*** If a single datum in a wallet contains several individual keys and values, they may need to be broken apart rather than being stored as a single blob, depending on the specifics of the data. When you consult the ZeWIF docs you'll find one of three situations:
+***[Export:] Break Apart Composite Data When Appropriate.*** Wallets may store data as composite objects containing multiple individual keys and values. When exporting, these may need to be broken apart rather than stored as a single blob. Consult the ZeWIF documentation to determine the appropriate approach:
 
-1. A data type exists for the combined datum. This will happen when Zcash officially _specifies_ the composite datum. In this case, store the datum using the combined data type.
-2. Data types exists for each of the individual parts of the datum. In this case, store each of the individual data elements using the individual data type.
-3. There are no data types for some or all of the individual parts of the data. In this case, break apart the datum as much as makes sense. For any data elements that exist, store that data appropriately. For the rest, store each individually as an attachment, following best practices.
+1.  **Combined Data Type Exists:** If ZeWIF defines a data type for the composite datum (typically when Zcash officially specifies it), use this combined data type.
+2.  **Individual Data Types Exist:** If ZeWIF provides data types for each part of the composite datum, store each part individually using its corresponding data type.
+3.  **Partial or No Data Types Exist:** If ZeWIF lacks data types for some or all individual parts, break down the composite datum as much as is logical. Store elements with existing ZeWIF data types accordingly. For the remaining elements, store each as an individual attachment, adhering to best practices for attachments.
 
 * _Example:_ `zcashd`'s CKeyMetaData contains a seed fingerprint (uint256), a creation date (UNIX timestamp), and an HD/ZIP-32 Keypath (string). ZeWIF allows for the individual storage of `version`, `create_time`, `hd_keypath`, and `seed_fp` as part of the `KeyMetadata` structure. By storing the content individually, instead of as a blob, we make them more accessible in the future.
 
-***[Import:] Destroy ZeWIF Files after Importing.*** After importing a ZeWIF file, you should give users the option to destroy it, as it will usually contain sensitive information. An alternative is to ***Re-Encrypt for Storage*** as discussed below.
+***[Import:] Destroy ZeWIF Files after Importing.*** After importing a ZeWIF file, you should remind users to destroy it once they determine they no longer need it, as it will usually contain sensitive information. An alternative is to ***Encrypt for Storage*** as discussed below.
 
 ## Key Migration
 
-***[All:] Use Account Abstractions.*** Some Zcash keys are based on system data, while others are HD keys derived from a seed. However, users of most wallets instead see keys grouped into accounts, which may contain related HD keys, unrelated system-randomness keys, or combinations of any of these. Since accounts represent a crucial usability tool for users to understand the organization of their assets, they should be preserved both through export and import, even if they represent an abstraction without any "real" meaning for how the keys relate.
+***[All:] Use Account Abstractions.*** Zcash utilizes different types of cryptographic keys. Some are non-deterministic keys generated using system randomness, while others are Hierarchical Deterministic (HD) keys derived from a master seed. Most Zcash wallet software presents these keys to users grouped into 'accounts' for better asset organization. These accounts can encompass a series of related HD keys (e.g., addresses derived from a specific path in an HD tree), individual non-deterministic keys, or a combination thereof. Given that accounts are a vital usability feature enabling users to manage and comprehend their funds, it is essential that this organizational structure (including account names and groupings) is preserved during wallet export and import processes. This should be the case even when an 'account' is primarily a wallet-level abstraction, especially if it groups cryptographically unrelated keys, as it maintains the user's intended organization.
 
 * _Example:_ ZeWIF includes an `account` data type, which is defined in `account.rs`. It allows for the storage of `index`, `name`, `zip32_account_id`, `addresses`, `relevant_transactions`, `sapling_sent_outputs`, and `orchard_sent_outputs`. Attachments may also be added for non-standard data related to an account for a specific wallet.
 
@@ -72,7 +74,7 @@ let t_addr = transparent::Address::new("t1exampleaddress");
 
 * _Example:_ A user has lots of Zcash dust that can't be used effectively. Nonetheless, the keys controlling that dust should be converted over. The new wallet can decide if it wants to do anything with the issue.
 
-***[Export:] Sweep for Bugs in Asset Control if Possible.*** If your wallet did something out of spec with the larger Zcash community and it affects the control of assets, this is important to resolve before exporting your data, because future wallets will not know about the variance from the specification, and this could cause lost of funds. Spec variance is mostly likely to be a variance in how keys are derived from a seed or a master key, but there might be other issues. In these cases, move funds off of the out-of-spec keys or seeds (or whatever) before migrating the wallet file.
+***[Export:] Sweep for Bugs in Asset Control if Possible.*** If your wallet did something out of spec with the larger Zcash community and it affects the control of assets, this is important to resolve before the export of your data, because future wallets will not know about the variance from the specification, and this could cause loss of funds. Spec variance is mostly likely to be a variance in how keys are derived from a seed or a master key, but there might be other issues. In these cases, move funds off of the out-of-spec keys or seeds (or whatever) before migrating the wallet file.
 
 * _Example:_ `zecwallet-cli 1.0` incorrectly derived HD wallet keys after the first key, affecting both `t` and `z` addresses. Funds on addresses after the first should be swept prior to the migration of a `zecwallet-cli 1.o` wallet as future wallets won't know about these incorrectly derived keys, and thus will not be able to access the funds without knowing specifically how to derive them.
 
@@ -80,17 +82,23 @@ let t_addr = transparent::Address::new("t1exampleaddress");
 
 * _Example:_ Version 2.0.5-2 of `zcashd` has a Sprout-to-Sapling migration tool, whose usage is fully described in [ZIP-308](https://zips.z.cash/zip-0308).
 
-***[Export:] Ensure that Data Files Represent a Post-Sweep State.*** If sweep of funds is done due to specification variances or Sprout migration, ensure that it occurs before the wallet file is export and migrated.
+***[Export:] Ensure that Data Files Represent a Post-Sweep State.*** If sweep of funds is done due to specification variances or Sprout migration, ensure that it occurs before the wallet file is exported and migrated.
 
 * _Example:_ This is just a logistical reminder! You don't want to start your migration process, export your file, sweep funds, and then migrate a file that doesn't have the new sweep addresses!
 
 ## Data Classes & Data Types
 
-***[Export:] Store Data Not Included in the Spec.*** The ZeWIF project recognizes three classes of data: important data used in multiple wallets (class I); important data used by one or few wallets (class II); and unimportant data (class III). It only specifically covers class I data, which should include all data required for asset recovery. Class II data remains important, but because it's wallet-specific, it falls on individual wallet developers to decide which of their data is class II and store this data when migrating to ZeWIF. This is done by storing class II data in [attachments](attachments.md).
+***[Export:] Store Data Not Included in the Spec.*** The ZeWIF project recognizes three classes of data:
+
+- **Class I:** important data used in multiple wallets,
+- **Class II:** important data used by one or few wallets,
+- **Class III:** unimportant data.
+
+It only specifically covers class I data, which should include all data required for asset recovery. Class II data remains important, but because it's wallet-specific, it falls on individual wallet developers to decide which of their data is class II and store this data when migrating to ZeWIF. This is done by storing class II data in [attachments](attachments.md).
 
 * _Example:_ The entire modern data set from `zcashd` was converted as first-class data. Other wallets may find that they have additional data, such as information on `swaps` stored by YWallet. This should be stored as second-class data using attachments.
 
-***[Export:] Store the Entire Data Set.*** After migrating all the discrete data elements into ZeWIF, the complete wallet file should be stored as a separate [attachment](attachments.md), to ensure that nothing is lost, not even class III data. The `vendor` should be defined with a reverse of the main domain name for the wallet publisher and the `conformsTo` should be set to URL of the best specification for the wallet or if that does not exist the URL of the central marketing page for the wallet. The attachment should be placed as the first `attachments` element of the top-level `Zewif` object.
+***[Export:] Store the Entire Data Set.*** After migrating all the discrete data elements into ZeWIF, the complete, original wallet file should be stored as a separate [attachment](attachments.md), to ensure that nothing is lost, not even class III data. The `vendor` should be defined with a reverse of the main domain name for the wallet publisher and the `conformsTo` should be set to URL of the best specification for the wallet or if that does not exist the URL of the central marketing page for the wallet. The attachment should be placed in the `attachments` element of the top-level `Zewif` object.
 
 * _Example:_ This may not be necessary for `zcashd` or `zingo` as we believe they were entirely converted as part of the development process for ZeWIF. However, for new, third-party wallets, we suggest a blob of the entire data set be stored in the first `attachments` element of `Zewif`, as described above.
 
@@ -114,7 +122,7 @@ let t_addr = transparent::Address::new("t1exampleaddress");
 
 * _Example:_ Zingo! maintains Witness Trees in TxMap.WitnessTrees. This information should be preserved.
 
-***[Import:] Drop Incorrect Witness Trees.*** Best practice is to recheck witness trees as they're being imported and to dump them if they're incorrect, so as to not incorporate corrupt data into the new wallet.
+***[Import:] Drop Incorrect Witness Trees.*** Best practice is to recheck witness trees as they're being imported and to drop them if they're incorrect, so as to not incorporate corrupt data into the new wallet.
 
 ## Attachments
 
@@ -126,7 +134,7 @@ let t_addr = transparent::Address::new("t1exampleaddress");
 
 ***[Export:] Document Attachments Online.*** It is recommended that  a `conformsTo` assertion be included with each attachment. This is even more highly recommended as a best practice when storing class II data into attachments. Ideally, the `conformsTo` should be a web page that specifies exactly how all attachments data is stored: what it is and how it's encoded. By storing this data in a web page you can ensure that it's accessible far into the future: even if your web page is gone, it can be retrieved through a service such as archive.org's Wayback Machine.
 
-***[Export:] Version Your ZeWIF `conformsTo`.*** Specifications can change over time. It's therefore best to supplement any `conformsTo` content with a  version. This can be done by making the URLs used in `conformsTo` be version specific, with a new URL for each new version. This ensures that if a URL is retrieved in the future with archive.org, it's exactly the data that a user needs.
+***[Export:] Version Your ZeWIF `conformsTo`.*** Specifications can change over time. It's therefore best to supplement any `conformsTo` content with a  version. This can be done by making the URLs used in `conformsTo` be version specific, with a new URL for each new version. This ensures that if a URL is retrieved in the future (by any means), it's exactly the data that a user needs.
 
 * _Example:_ ZSampleWallet uses a `conformsTo` URL for all of its attachments of `https://www.zsamplewallet/spec/v1.0/`. When they add a new attachment, they replace their `conformsTo` URLs with `https://www.zsamplewallet/spec/v1.1/`.
 
@@ -140,11 +148,11 @@ let t_addr = transparent::Address::new("t1exampleaddress");
 
 * _Example:_ Zecwallet private keys are encrypted with the secretbox Rust crate, using a doublesha256 of the user's password and a random nonce and a combination of Salsa20 and Poly1305. Even if the password and nonce were known, an importing wallet may not know the procedure to use them to decrypt, which is why decryption must occur prior to the migration of the data file.
 
-***[All:] Securely Transmit Data.*** Because ZeWIF contains sensitive, decrypted data, it must be transmitted securely. Encrypted means such as SSH, Tor, and HTTPS are the best choices, but an [Animated QR](https://developer.blockchaincommons.com/animated-qrs/) is also fairly secure. If the transmission mechanism is not secure (such as Bluetooth or NFC transmission), ensure that the data is encrypted before transmission, as discussed below.
+***[All:] Securely Transmit Data.*** Because ZeWIF contains sensitive, decrypted data, it should be encrypted both at rest and on the wire. On the wire secure protocols such as SSH, Tor, and HTTPS are the best choices, but an [Animated QR](https://developer.blockchaincommons.com/animated-qrs/) is also fairly secure. If the transmission protocol is not secure (such as Bluetooth or NFC transmission), ensure that the data is encrypted before transmission, as discussed below.
 
 * _Example:_ ZSampleWallet offers an Animated QR of an `ur:envelope` as a ZeWIF export function. If another wallet has been programmed to read in that data, the transmission should be fairly secure (absent unlikely in-person surveillance).
 
-***[All:] Re-Encrypt for Storage.*** If ZeWIF data is going to be stored at rest, and if it contains sensitive data (which will almost always be the case), it should be re-encrypted. If you are using `zmigrate`, this can be done with the `--encrypt` flag. You can also encrypt a ZeWIF file that you're already generated with the [bc-envelope-cli-rust app](https://github.com/BlockchainCommons/bc-envelope-cli-rust), since all ZeWIF files are Envelope-compliant.
+***[All:] Encrypt for Storage.*** If ZeWIF data is going to be stored at rest, and if it contains sensitive data (which will almost always be the case), it should be encrypted at rest. If you are using `zmigrate`, this can be done with the `--encrypt` flag. You can also encrypt a ZeWIF file that you're already generated with the [bc-envelope-cli-rust app](https://github.com/BlockchainCommons/bc-envelope-cli-rust), since all ZeWIF files are Envelope-compliant.
 
 * _Example:_ `zmigrate` can encrypt with a command like `zmigrate --encrypt --from zcash --to zewif input-file output-file`.
 
