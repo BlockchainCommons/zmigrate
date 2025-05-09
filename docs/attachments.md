@@ -29,7 +29,7 @@ Nonetheless, the following major points are useful as an overview of Gordian Env
 
 * **Envelope Uses CBOR.** Gordian Envelope is built using CBOR, a [well-specified](https://cbor.io/) and mature binary data representation format. Every Envelope is not only [legal CBOR](https://datatracker.ietf.org/doc/html/rfc8949), but also [legal dCBOR](https://datatracker.ietf.org/doc/draft-mcnally-deterministic-cbor/), a deterministic version of CBOR. Every Envelope, and therefore every ZeWIF file, can be read using CBOR tools such as [cbor.me](https://cbor.me/). (But don't read ZeWIF files containing private keys in an online site!)
 * **Envelope Stores Data in a Merkle-Like Tree.** Gordian Envelope is a branching hierarchical structure. Central nodes lead to multiple branches and eventually to leaves. This allows for the organized storage of data. The tree is Merkle-like because branches can be hashed and that hash can be stored in a node to prove the data that lies under it (which may not be relevant for the first iteration of ZeWIF, but which allows for powerful elision and signatures).
-* **Envelope is Built on Semantic Triples.** Data is stored in a Gordian Envelope as a sematic triple of subject-predicate-object. Each predicate-object pair is called an assertion, which applies to a subject. A node connects together a subject and zero or more assertions about that subject.
+* **Envelope is Built on Semantic Triples.** Data is stored in a Gordian Envelope as a semantic triple of subject-predicate-object. Each predicate-object pair is called an assertion, which applies to a subject. A node connects together a subject and zero or more assertions about that subject.
 
 ```mermaid
 graph LR
@@ -181,7 +181,7 @@ pub struct Account {
     attachments: HashMap<Digest, Envelope>,
 }
 ```
-The hashmap allows for a number of attachments to be added to this standard data structure, each of which is intended to hold metadata related to the Account.
+The hash map allows for a number of attachments to be added to this standard data structure, each of which is intended to hold metadata related to the Account.
 
 When output as ZeWIF, the attachment will then be part of that branch of the data tree.
 ```
@@ -207,4 +207,4 @@ This allows for the attachment of data that doesn't fit in any particular struct
 ```
 [example of attaching data file]
 ```
-The biggest challenge here may actually be converting the data file into a serialiazable format. Though this will be trivial for a flat file, database driven wallets will likely need to dump a number of tables in a way that is meaningfully readable.
+The biggest challenge here may actually be converting the data file into a serializable format. Though this will be trivial for a flat file, database driven wallets will likely need to dump a number of tables in a way that is meaningfully readable.

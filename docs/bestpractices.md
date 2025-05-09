@@ -1,6 +1,6 @@
 # Best Practices for Importing & Exporting Wallet Data
 
-The ZeWIF format is a specification for the import and export of Zcash wallet data, enabling interoperability among walls, and creating freedom for users. However, the ZeWIF format also requires work from individual developers who want to interop their data, whether they are using the ZeWIF format or not.
+The ZeWIF format is a specification for the import and export of Zcash wallet data, enabling interoperability among walls, and creating freedom for users. However, the ZeWIF format also requires work from individual developers who want to their data to interoperate, whether they are using the ZeWIF format or not.
 
 ```mermaid
 graph TD
@@ -47,7 +47,7 @@ The following best practices offer suggestions for those front-end and back-end 
 
 ***[Export:] Break Apart Composite Data.*** If a single datum in a wallet contains several individual keys and values, they should be separated out before migrating them, even if they're related.
 
-* _Example:_ `zcashd`'s CKeyMetaData contains a seed fingerprint (uint256), a creation date (UNIX timestamp), and an HD/ZIP-32 Keypath (string). Those datums should each be individually stored when migrated.
+* _Example:_ `zcashd`'s CKeyMetaData contains a seed fingerprint (uint256), a creation date (UNIX timestamp), and an HD/ZIP-32 keypath (string). Those datums should each be individually stored when migrated.
 
 ***[Import:] Destroy ZeWIF Files after Importing.*** After importing a ZeWIF file, you should give users the option to destroy it, as it will usually contain sensitive information. An alternative is to ***Re-Encrypt for Storage*** as discussed below.
 
@@ -81,7 +81,7 @@ The following best practices offer suggestions for those front-end and back-end 
 
 ***[Export:] Store the Entire Data Set.*** After migrating all the discrete data elements into ZeWIF, the complete wallet file should be stored as a separate [attachment](attachments.md), to ensure that nothing is lost, not even class III data. The `vendor` should be defined with a reverse of the main domain name for the wallet publisher and the `conformsTo` should be set to the best specification for the wallet or if that does not exist the central marketing page for the wallet. [[This should probably be part of the spec, and it may need to be rewritten based on what's there.]]
 
-* _Example:_ The `wallet.dat` file from `zcashd` is copied into the ZeWIF file as a blob that's linked to the `attachments`  element of `Zewif` as the last step of the migraiton.
+* _Example:_ The `wallet.dat` file from `zcashd` is copied into the ZeWIF file as a blob that's linked to the `attachments`  element of `Zewif` as the last step of the migration.
 
 ### Wallet-Specific Data
 
@@ -95,7 +95,7 @@ The following best practices offer suggestions for those front-end and back-end 
 
 ### Calculated & Downloaded Data
 
-***[Export:] Store All Transaction Information.*** Different wallets store different information regarding transactions. Some of it is recoverable from the blockchain, some of it is not. Nonetheless, all transaction information should be stored, whether it's recoverable or not. Storing nonrecoverable information is obviously a requirement. Storing recoverable information keeps the new wallet from having to look up information on the blockchain (which is a privacy concern, as noted below). Storing everything held by a wallet ensures that you don't make a mistake and accidently omit something because you thought it was recoverable and it was not.
+***[Export:] Store All Transaction Information.*** Different wallets store different information regarding transactions. Some of it is recoverable from the blockchain, some of it is not. Nonetheless, all transaction information should be stored, whether it's recoverable or not. Storing nonrecoverable information is obviously a requirement. Storing recoverable information keeps the new wallet from having to look up information on the blockchain (which is a privacy concern, as noted below). Storing everything held by a wallet ensures that you don't make a mistake and accidentally omit something because you thought it was recoverable and it was not.
 
 * _Example:_ `zcashd` mostly stores nonrecoverable information regarding transactions, such as redeem scripts, but it also stores recipient addresses, which are theoretically recoverable with an outgoing viewing key. The "theoretical" in that statement is exactly why _all_ transaction data should be stored.
 
@@ -137,9 +137,9 @@ The following best practices offer suggestions for those front-end and back-end 
 
 ***[All:] Securely Transmit Data.*** Because ZeWIF contains sensitive, decrypted data, it must be transmitted securely. Encrypted means such as SSH, Tor, and HTTPS are the best choices, but an [Animated QR](https://developer.blockchaincommons.com/animated-qrs/) is also fairly secure. If the transmission mechanism is not secure (such as Bluetooth or NFC transmission), ensure that the data is encrypted before transmission, as discussed below.
 
-* _Example:_ ZSampleWallet offers an Animated QR of an `ur:envelope` as a ZeWIF export function. If another wallet has been programmed to read in that data, the transmission should be fairly secure (absent unlikely in-person surveilance).
+* _Example:_ ZSampleWallet offers an Animated QR of an `ur:envelope` as a ZeWIF export function. If another wallet has been programmed to read in that data, the transmission should be fairly secure (absent unlikely in-person surveillance).
 
-***[All:] Re-Encrypt for Storage.*** If ZeWIF data is going to be stored at rest, and if it contains sensitive data (which will almost always be the case), it should be reencrypted. This is not currently possible using the zmigrate crate, but ZeWIF files are [Gordian Envelope-compliant](https://developer.blockchaincommons.com/envelope/), which means that the [bc-envelope-cli-rust app](https://github.com/BlockchainCommons/bc-envelope-cli-rust) may be used to manipulate any ZeWIF file output by zmigrate, including encrypting it.
+***[All:] Re-Encrypt for Storage.*** If ZeWIF data is going to be stored at rest, and if it contains sensitive data (which will almost always be the case), it should be re-encrypted. This is not currently possible using the zmigrate crate, but ZeWIF files are [Gordian Envelope-compliant](https://developer.blockchaincommons.com/envelope/), which means that the [bc-envelope-cli-rust app](https://github.com/BlockchainCommons/bc-envelope-cli-rust) may be used to manipulate any ZeWIF file output by zmigrate, including encrypting it.
 
 * _Example:_ The Envelope CLI may be installed using `cargo install bc-envelope-cli`. The ZeWIF file can then be encrypted using [symmetric encryption](https://github.com/BlockchainCommons/bc-envelope-cli-rust/blob/master/docs/BasicExamples.md#example-4-symmetric-encryption) (in which case the key must be carefully preserved) or [SSKR](https://github.com/BlockchainCommons/bc-envelope-cli-rust/blob/master/docs/SSKRExample.md) (in which case the envelopes with shares should be separated, as the data can be encrypted if a threshold of the envelopes are together).
 
