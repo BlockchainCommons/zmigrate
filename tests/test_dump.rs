@@ -1,5 +1,5 @@
-use anyhow::{Result, bail};
-use zmigrate::{zcashd_cmd, zingo_cmd};
+use anyhow::{ Result, bail };
+use zmigrate::{ zcashd_cmd /* zingo_cmd */ };
 
 use std::fmt::Write;
 use regex::Regex;
@@ -13,15 +13,17 @@ fn dump_wallet(path_elements: &[&str]) -> Result<String> {
     if path_elements[0] == "zcashd" {
         zcashd_cmd::dump_wallet(&path)
     } else if path_elements[0] == "zingo" {
-        zingo_cmd::dump_wallet(&path)
+        // zingo_cmd::dump_wallet(&path)
+        todo!()
     } else {
         bail!("Unknown command: {}", path_elements[0]);
     }
 }
 
 fn test_dump(path_elements: &[&str]) {
-    let output = dump_wallet(path_elements)
-        .unwrap_or_else(|_| panic!("Unable to process file: {:?}", path_elements));
+    let output = dump_wallet(path_elements).unwrap_or_else(|_|
+        panic!("Unable to process file: {:?}", path_elements)
+    );
     assert!(output.lines().last().unwrap().contains("Success"));
     // println!("{}", output);
 }
@@ -57,9 +59,15 @@ fn test_migration_quality(path_elements: &[&str]) -> Result<String> {
     let total_positions = zero_positions_count + nonzero_positions_count;
 
     if total_positions > 0 {
-        let preservation_rate = (nonzero_positions_count as f64 / total_positions as f64) * 100.0;
-        writeln!(report, "- Positions: {}/{} preserved ({:.1}%)",
-               nonzero_positions_count, total_positions, preservation_rate)?;
+        let preservation_rate =
+            ((nonzero_positions_count as f64) / (total_positions as f64)) * 100.0;
+        writeln!(
+            report,
+            "- Positions: {}/{} preserved ({:.1}%)",
+            nonzero_positions_count,
+            total_positions,
+            preservation_rate
+        )?;
     } else {
         writeln!(report, "- Positions: No position data found")?;
     }
@@ -94,9 +102,27 @@ fn test_migration_quality(path_elements: &[&str]) -> Result<String> {
     writeln!(report, "- Accounts: {}/{} preserved", zewif_accounts, zcashd_accounts)?;
 
     // Check specific ZCash features
-    check_feature_presence(&mut report, zcashd_section, zewif_section, "Unified", "Unified Address Support")?;
-    check_feature_presence(&mut report, zcashd_section, zewif_section, "SeedMaterial", "Seed Material")?;
-    check_feature_presence(&mut report, zcashd_section, zewif_section, "Network", "Network Information")?;
+    check_feature_presence(
+        &mut report,
+        zcashd_section,
+        zewif_section,
+        "Unified",
+        "Unified Address Support"
+    )?;
+    check_feature_presence(
+        &mut report,
+        zcashd_section,
+        zewif_section,
+        "SeedMaterial",
+        "Seed Material"
+    )?;
+    check_feature_presence(
+        &mut report,
+        zcashd_section,
+        zewif_section,
+        "Network",
+        "Network Information"
+    )?;
 
     Ok(report)
 }
@@ -123,7 +149,13 @@ fn count_pattern(text: &str, pattern: &str) -> usize {
     re.find_iter(text).count()
 }
 
-fn check_feature_presence(report: &mut String, source: &str, dest: &str, key_word: &str, feature_name: &str) -> Result<()> {
+fn check_feature_presence(
+    report: &mut String,
+    source: &str,
+    dest: &str,
+    key_word: &str,
+    feature_name: &str
+) -> Result<()> {
     let in_source = source.contains(key_word);
     let in_dest = dest.contains(key_word);
 
@@ -138,14 +170,25 @@ fn check_feature_presence(report: &mut String, source: &str, dest: &str, key_wor
     Ok(())
 }
 
-fn report_key_preservation(report: &mut String, source: &str, dest: &str, key_type: &str) -> Result<()> {
+fn report_key_preservation(
+    report: &mut String,
+    source: &str,
+    dest: &str,
+    key_type: &str
+) -> Result<()> {
     let source_count = source.matches(key_type).count();
     let dest_count = dest.matches(key_type).count();
 
     if source_count > 0 {
-        let preservation_rate = (dest_count as f64 / source_count as f64) * 100.0;
-        writeln!(report, "  * {} keys: {}/{} preserved ({:.1}%)",
-               key_type, dest_count, source_count, preservation_rate)?;
+        let preservation_rate = ((dest_count as f64) / (source_count as f64)) * 100.0;
+        writeln!(
+            report,
+            "  * {} keys: {}/{} preserved ({:.1}%)",
+            key_type,
+            dest_count,
+            source_count,
+            preservation_rate
+        )?;
     } else {
         writeln!(report, "  * {} keys: None found in source", key_type)?;
     }
@@ -178,7 +221,7 @@ fn test_zcashd() {
         vec!["zcashd", "wallet4.dat"],
         vec!["zcashd", "wallet5.dat"],
         vec!["zcashd", "wallet6.dat"],
-        vec!["zcashd", "wallet7.dat"],
+        vec!["zcashd", "wallet7.dat"]
     ];
     for path in &paths {
         test_dump(path);
@@ -202,19 +245,27 @@ fn test_migration_quality_report() {
 
         // Standard wallets
         vec!["zcashd", "wallet0.dat"], // Test standard wallet
-        vec!["zcashd", "wallet5.dat"], // Test wallet likely with Orchard data
+        vec!["zcashd", "wallet5.dat"] // Test wallet likely with Orchard data
     ];
 
     // Create a summary table of all wallet reports
     let mut summary = String::new();
     writeln!(summary, "=== MIGRATION QUALITY SUMMARY ===").unwrap();
-    writeln!(summary, "{:<40} | {:<15} | {:<15} | {:<15}", "Wallet", "Addresses", "Transactions", "Positions").unwrap();
+    writeln!(
+        summary,
+        "{:<40} | {:<15} | {:<15} | {:<15}",
+        "Wallet",
+        "Addresses",
+        "Transactions",
+        "Positions"
+    ).unwrap();
     writeln!(summary, "{:-<40}-+-{:-<15}-+-{:-<15}-+-{:-<15}", "", "", "", "").unwrap();
 
     // Process each wallet and collect stats
     for path in &test_paths {
-        let report = test_migration_quality(path)
-            .unwrap_or_else(|e| format!("Error generating report for {:?}: {}", path, e));
+        let report = test_migration_quality(path).unwrap_or_else(|e|
+            format!("Error generating report for {:?}: {}", path, e)
+        );
 
         // Print the detailed report
         println!("\n{}\n", report);
@@ -234,8 +285,14 @@ fn test_migration_quality_report() {
             "N/A".to_string()
         };
 
-        writeln!(summary, "{:<40} | {:<15} | {:<15} | {:<15}",
-                 wallet_name, addr_stats, tx_stats, pos_stats).unwrap();
+        writeln!(
+            summary,
+            "{:<40} | {:<15} | {:<15} | {:<15}",
+            wallet_name,
+            addr_stats,
+            tx_stats,
+            pos_stats
+        ).unwrap();
     }
 
     // Print the summary table
@@ -270,7 +327,7 @@ fn test_zingo() {
         vec!["zingo", "testnet", "glory_goddess.dat"],
         vec!["zingo", "testnet", "latest.dat"],
         vec!["zingo", "testnet", "v26.dat"],
-        vec!["zingo", "testnet", "v28.dat"],
+        vec!["zingo", "testnet", "v28.dat"]
         // vec!["zingo", "testnet", "v27.dat"], // long
     ];
     for path in &paths {

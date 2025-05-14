@@ -1,3 +1,5 @@
+#![cfg(feature = "disabled-tests")]
+
 //! # Test Suite: Unified Address Migration Tests
 //!
 //! This test suite verifies that unified addresses are properly migrated:

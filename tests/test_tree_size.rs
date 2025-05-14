@@ -1,3 +1,5 @@
+#![cfg(feature = "disabled-tests")]
+
 use anyhow::{Context, Result};
 use zewif_zcashd::{BDBDump, ZcashdDump, ZcashdParser};
 

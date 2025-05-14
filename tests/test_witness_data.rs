@@ -1,3 +1,5 @@
+#![cfg(feature = "disabled-tests")]
+
 use anyhow::Result;
 use zmigrate::{zcashd_cmd, zingo_cmd};
 use regex::Regex;

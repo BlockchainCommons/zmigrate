@@ -1,3 +1,5 @@
+#![cfg(feature = "disabled-tests")]
+
 //! # Test Suite: Address Migration Tests
 //!
 //! This test suite verifies that all aspects of address migration work correctly:

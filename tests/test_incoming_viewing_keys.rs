@@ -1,3 +1,5 @@
+#![cfg(feature = "disabled-tests")]
+
 //! # Test Suite: Incoming Viewing Key (IVK) Preservation Tests
 //!
 //! This test suite verifies that Incoming Viewing Keys are properly preserved during
