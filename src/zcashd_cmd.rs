@@ -120,9 +120,9 @@ fn output_envelope(envelope: &Envelope, output: &mut String) {
 pub fn zcashd_to_zewif(file: &Path) -> Result<Zewif> {
     let db_dump = BDBDump::from_file(file).context("Parsing BerkeleyDB file")?;
 
-    let zcashd_dump = ZcashdDump::from_bdb_dump(&db_dump).context("Parsing Zcashd dump")?;
+    let zcashd_dump = ZcashdDump::from_bdb_dump(&db_dump, true).context("Parsing Zcashd dump")?;
 
-    let (zcashd_wallet, unparsed_keys) = ZcashdParser::parse_dump(&zcashd_dump).context(
+    let (zcashd_wallet, unparsed_keys) = ZcashdParser::parse_dump(&zcashd_dump, true).context(
         "Parsing Zcashd dump"
     )?;
 
@@ -140,9 +140,9 @@ pub fn zcashd_to_zewif(file: &Path) -> Result<Zewif> {
 pub fn dump_wallet(file: &Path) -> Result<String> {
     let db_dump = BDBDump::from_file(file).context("Parsing BerkeleyDB file")?;
 
-    let zcashd_dump = ZcashdDump::from_bdb_dump(&db_dump).context("Parsing Zcashd dump")?;
+    let zcashd_dump = ZcashdDump::from_bdb_dump(&db_dump, true).context("Parsing Zcashd dump")?;
 
-    let (zcashd_wallet, unparsed_keys) = ZcashdParser::parse_dump(&zcashd_dump).context(
+    let (zcashd_wallet, unparsed_keys) = ZcashdParser::parse_dump(&zcashd_dump, true).context(
         "Parsing Zcashd dump"
     )?;
 
