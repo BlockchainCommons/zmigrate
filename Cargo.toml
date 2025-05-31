@@ -2,6 +2,7 @@
 name = "zmigrate"
 version = "0.1.0"
 edition = "2024"
+license = "MIT or Apache 2.0"
 
 [lib]
 path = "src/lib.rs"
@@ -14,7 +15,7 @@ path = "src/main.rs"
 zewif = { path = "../zewif" }
 zewif-zcashd = { path = "../zewif-zcashd" }
 # zewif-zingo = { path = "../zewif-zingo" }
-bc-envelope = "^0.28.0"
+bc-envelope = "^0.29.0"
 
 anyhow = "1.0.95"
 hex = "0.4.3"
