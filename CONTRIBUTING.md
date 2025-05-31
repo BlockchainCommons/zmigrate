@@ -55,9 +55,9 @@ We use [Github Flow](https://guides.github.com/introduction/flow/index.html). Wh
 5. Make sure your code lints.
 6. Issue that Pull Request!
 
-### Submit Under the BSD-2-Clause Plus Patent License
+### Submit Under the MIT or Apache 2.0 License
 
-In short, when you submit code changes, your submissions are understood to be available under the same [BSD-2-Clause Plus Patent License](./LICENSE.md) that covers the project. We also ask all code contributors to GPG sign the [Contributor License Agreement (CLA.md)](./CLA.md) to protect future users of this project. Feel free to contact the maintainers if that's a concern.
+In short, when you submit code changes, your submissions are understood to be available under the same terms (MIT or Apache 2.0) that covers the project. We also ask all code contributors to GPG sign the [Contributor License Agreement (CLA.md)](./CLA.md) to protect future users of this project. Feel free to contact the maintainers if that's a concern.
 
 ## References
 

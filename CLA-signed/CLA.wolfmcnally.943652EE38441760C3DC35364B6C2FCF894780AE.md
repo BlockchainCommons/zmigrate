@@ -47,24 +47,24 @@ I promise not to offer contributions to the project that I know infringe patents
 
 ## Open Source Guarantee
 
-I promise not to offer contributions that contain or depend on the work of others, unless that work is available under a license that [Blue Oak Council rates bronze or better](https://blueoakconcil.org/list), such as the MIT License, two- or three-clause BSD License, the Apache License Version 2.0, or the Blue Oak Model License 1.0.0.  When I offer a contribution containing or depending on others' work, I promise to document in the contribution who licenses that work, along with copies of their license terms.
+I promise not to offer contributions that contain or depend on the work of others, unless that work is available under the MIT License, or the Apache License Version 2.0. When I offer a contribution containing or depending on others' work, I promise to document in the contribution who licenses that work, along with copies of their license terms.
 
 ## Disclaimers
 
 ***As far as the law allows, my contributions come as is, without any warranty or condition.  Other than under [Copyright Guarantee](#copyright-guarantee), [Patent Guarantee](#patent-guarantee), or [Open Source Guarantee](#open-source-guarantee), I will not be liable to anyone for any damages related to my contributions or this contributor license agreement, under any kind of legal claim.***
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEElDZS7jhEF2DD3DU2S2wvz4lHgK4FAmetLIUACgkQS2wvz4lH
-gK4X+w//dtTi6wR0N3asM8QPiXrBRwvX0oIikiscE+9Jn/TwCPFnKrRhbw/Y9/s3
-mVD5L9yH79PQBh8+q6YZTrFmkKETXw60KtdHmhgGSggPqE5vV5GCFS7Z7A9ISiXH
-VXzt8dkH1NSdM8CgQTf6YyttKhNjlcwCdw+FV63G+EHAuiQ/LXvqY070+V9LcvV1
-7sK28epztajwWksaOU9tuEs0wV3Seh5T0kUtibErlmybf62f0dpjx8hNeGhktiYr
-t94545ac0nQNUXXsPdf1QvJtaWPnSUJEQe3VWRBnek5PPYS4CttWpiArKbCy2g+o
-j+CCjHJm67+vhaqAv/eHn1j2zBtIZ2q3UQMwGAha2ObPfoD4viUQQjgdV2goFFLR
-d/x2zDyuH2G8iPyHUUYGeYTXTJQAW0tTsvrNU28YbOnXKvWxRysolvq5ehuIyms3
-i1JpyTjqFwAozRUF6jSIfsMoQEK/NUeoZ3WT64NVGXs4d4OBgrTVM3k2ZptA1K2B
-5q8Ns0lmSWdYS02fwJCKb53hvSD0eNNWVGx36nZgzj72mBerFxdf1pZofrhwUpOR
-c+gHGjaZLNNOqubGV/l7hJCbERVpOPKXi9vLDHhJJkhJcQ/RIgZjQGY4FDiN+Jk3
-TczU/g5wnX9FkoLH5KyowuNGBJU/IvFQXoy4BG5/V+5tOZ23uOY=
-=IX17
+iQIzBAEBCAAdFiEElDZS7jhEF2DD3DU2S2wvz4lHgK4FAmg6k2kACgkQS2wvz4lH
+gK4bGhAAmu3Fj6U1QZNR4LZAlkuXFVbiUPOWwrfELZVYRxpemLbxzqiYplV8LNeQ
+SPorD6JEQr06Uu1RAD69GB0AG02j/vkE1CD25vDxaftyHbTL8vqVESHI0qsMUtvZ
+zRXwmT3Yg3tqrm112SOzi3NqXZJUeABwY5KV2w0KaG1/wHGBD1o9+PbDiAtHljK5
+Bw8nYlMXAXg7AcYyPW9y98WKw6J0sAZteZ1LPjjYf02GonFrIZHJbX8HjAWadACL
+w4fez3d8S7ZD5iOWhKUlq5h+9QGrh1rZgRh3HOQcGyR7lAC7yrwkisZTW8TuUT99
+8BiJ0v/6C7bbIDMdJjyXM7do7lgWNKuU8qkiZWmrKpOj1110ZDz9+oH15AttWKAD
+FBs6ylB05Jl3yPm5slxOyco21POpSBDWFOaER4CyzKWA1t6y2t6kJQT0tNoA67XZ
+/l870UXzmh/9mbeUm8/RHrBg3+vPDwM31UCnb6wgcjmtdfZNc5cjnDnuJPdxOeyI
+fGYOoUGULQt5xpnO94jrRkUWwYP1Ewox/STDiE7ZkJKegBcn7e1OSusnA5FE/af8
+u94UzzyESN7+IOxSKrNOmLvk0Nsva1E4zHGdXAxWtpbZ7PJ94EF1TUsDFKvjWszv
+/Uwf6R4cEa4u/K0AhQiCUlI822XOOGVbzL3Cvbjd2dfhxYsQMwE=
+=d/wk
 -----END PGP SIGNATURE-----

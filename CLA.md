@@ -44,7 +44,7 @@ I promise not to offer contributions to the project that I know infringe patents
 
 ## Open Source Guarantee
 
-I promise not to offer contributions that contain or depend on the work of others, unless that work is available under a license that [Blue Oak Council rates bronze or better](https://blueoakconcil.org/list), such as the MIT License, two- or three-clause BSD License, the Apache License Version 2.0, or the Blue Oak Model License 1.0.0.  When I offer a contribution containing or depending on others' work, I promise to document in the contribution who licenses that work, along with copies of their license terms.
+I promise not to offer contributions that contain or depend on the work of others, unless that work is available under the MIT License, or the Apache License Version 2.0. When I offer a contribution containing or depending on others' work, I promise to document in the contribution who licenses that work, along with copies of their license terms.
 
 ## Disclaimers
 
