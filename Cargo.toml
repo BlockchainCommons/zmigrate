@@ -15,7 +15,7 @@ path = "src/main.rs"
 zewif = { path = "../zewif" }
 zewif-zcashd = { path = "../zewif-zcashd" }
 # zewif-zingo = { path = "../zewif-zingo" }
-bc-envelope = "^0.32.0"
+bc-envelope = "^0.34.0"
 
 anyhow = "1.0.95"
 hex = "0.4.3"
