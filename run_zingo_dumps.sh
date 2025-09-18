@@ -16,7 +16,7 @@ run_dump() {
   mkdir -p "$(dirname "${output}")"
 
   echo "Dumping ${input} -> ${output}"
-  cargo run --quiet -- --from zingo --to dump "${input}" "${output}"
+  cargo run --quiet --features zingo -- --from zingo --to dump "${input}" "${output}"
 }
 
 wallets=(

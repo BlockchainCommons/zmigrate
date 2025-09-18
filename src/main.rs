@@ -9,7 +9,9 @@ use std::fs::File;
 use std::io::{self, Write};
 use std::path::PathBuf;
 use zewif::ZewifEnvelope;
-use zmigrate::{zcashd_cmd, zingo_cmd};
+use zmigrate::zcashd_cmd;
+#[cfg(feature = "zingo")]
+use zmigrate::zingo_cmd;
 
 /// Supported input formats for wallet migration
 #[derive(Debug, Clone, ValueEnum)]
@@ -18,6 +20,7 @@ pub enum InputFormat {
     Zcashd,
 
     /// Input from a `zingo` wallet
+    #[cfg(feature = "zingo")]
     Zingo,
 
     /// Input from a `zewif` wallet
@@ -171,6 +174,7 @@ fn inner_main() -> Result<()> {
                 }
             }
         }
+        #[cfg(feature = "zingo")]
         InputFormat::Zingo => {
             if cli.compress {
                 anyhow::bail!(

@@ -1,5 +1,7 @@
 use anyhow::{Result, bail};
-use zmigrate::{zcashd_cmd, zingo_cmd};
+use zmigrate::zcashd_cmd;
+#[cfg(feature = "zingo")]
+use zmigrate::zingo_cmd;
 
 use regex::Regex;
 use std::fmt::Write;
@@ -10,12 +12,13 @@ use test_utils::fixtures_path;
 
 fn dump_wallet(path_elements: &[&str]) -> Result<String> {
     let path = fixtures_path(path_elements);
-    if path_elements[0] == "zcashd" {
-        zcashd_cmd::dump_wallet(&path)
-    } else if path_elements[0] == "zingo" {
-        zingo_cmd::dump_wallet(&path)
-    } else {
-        bail!("Unknown command: {}", path_elements[0]);
+    match path_elements[0] {
+        "zcashd" => zcashd_cmd::dump_wallet(&path),
+        #[cfg(feature = "zingo")]
+        "zingo" => zingo_cmd::dump_wallet(&path),
+        #[cfg(not(feature = "zingo"))]
+        "zingo" => bail!("zingo support not enabled"),
+        other => bail!("Unknown command: {}", other),
     }
 }
 
@@ -340,6 +343,7 @@ fn extract_stat(report: &str, label: &str) -> String {
     "unknown".to_string()
 }
 
+#[cfg(feature = "zingo")]
 #[test]
 fn test_zingo() {
     let paths = vec![

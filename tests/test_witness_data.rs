@@ -2,7 +2,9 @@
 
 use anyhow::Result;
 use regex::Regex;
-use zmigrate::{zcashd_cmd, zingo_cmd};
+use zmigrate::zcashd_cmd;
+#[cfg(feature = "zingo")]
+use zmigrate::zingo_cmd;
 
 // Import shared test utilities
 mod test_utils;
@@ -10,12 +12,13 @@ use test_utils::fixtures_path;
 
 fn dump_wallet(path_elements: &[&str]) -> Result<String> {
     let path = fixtures_path(path_elements);
-    if path_elements[0] == "zcashd" {
-        zcashd_cmd::dump_wallet(&path)
-    } else if path_elements[0] == "zingo" {
-        zingo_cmd::dump_wallet(&path)
-    } else {
-        Err(anyhow::anyhow!("Unknown command: {}", path_elements[0]))
+    match path_elements[0] {
+        "zcashd" => zcashd_cmd::dump_wallet(&path),
+        #[cfg(feature = "zingo")]
+        "zingo" => zingo_cmd::dump_wallet(&path),
+        #[cfg(not(feature = "zingo"))]
+        "zingo" => Err(anyhow::anyhow!("zingo support not enabled")),
+        other => Err(anyhow::anyhow!("Unknown command: {}", other)),
     }
 }
 
