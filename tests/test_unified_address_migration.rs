@@ -35,9 +35,14 @@ use test_utils::fixtures_path;
 /// Tuple containing:
 /// - The raw ZcashdDump (for reference if needed)
 /// - The parsed ZcashdWallet structure
-fn load_zcashd_wallet(path_elements: &[&str]) -> Result<(ZcashdDump, ZcashdWallet)> {
+fn load_zcashd_wallet(
+    path_elements: &[&str],
+) -> Result<(ZcashdDump, ZcashdWallet)> {
     let path = fixtures_path(path_elements);
-    println!("Testing unified address migration for wallet: {}", path.display());
+    println!(
+        "Testing unified address migration for wallet: {}",
+        path.display()
+    );
 
     // Load the wallet using the same method as in zcashd_cmd::dump_wallet
     let db_dump = BDBDump::from_file(&path)?;
@@ -51,7 +56,8 @@ fn load_zcashd_wallet(path_elements: &[&str]) -> Result<(ZcashdDump, ZcashdWalle
 #[derive(Debug, Clone)]
 struct UnifiedAddressInfo {
     /// The string representation of the address
-    #[allow(dead_code)] // This is used as a key in the HashMap, not directly accessed
+    #[allow(dead_code)]
+    // This is used as a key in the HashMap, not directly accessed
     address_str: String,
     /// The list of receiver types this unified address contains
     receiver_types: HashSet<ReceiverType>,
@@ -75,7 +81,9 @@ struct UnifiedAddressInfo {
 ///
 /// # Returns
 /// - HashMap mapping address strings to their associated metadata
-fn extract_unified_addresses_from_zcashd(wallet: &ZcashdWallet) -> HashMap<String, UnifiedAddressInfo> {
+fn extract_unified_addresses_from_zcashd(
+    wallet: &ZcashdWallet,
+) -> HashMap<String, UnifiedAddressInfo> {
     let mut unified_addresses = HashMap::new();
 
     // Check if the wallet has unified accounts
@@ -96,17 +104,24 @@ fn extract_unified_addresses_from_zcashd(wallet: &ZcashdWallet) -> HashMap<Strin
             let ua_string = format!("ua:{}", hex::encode(id_bytes));
 
             // Create a set of receiver types
-            let receiver_types: HashSet<ReceiverType> = metadata.receiver_types.iter().cloned().collect();
+            let receiver_types: HashSet<ReceiverType> =
+                metadata.receiver_types.iter().cloned().collect();
 
             // Create the address info
             let address_info = UnifiedAddressInfo {
                 address_str: ua_string.clone(),
                 receiver_types,
                 has_diversifier_index: true, // Unified addresses always have diversifier indices
-                has_transparent_component: metadata.receiver_types.contains(&ReceiverType::P2PKH) ||
-                                           metadata.receiver_types.contains(&ReceiverType::P2SH),
-                has_sapling_component: metadata.receiver_types.contains(&ReceiverType::Sapling),
-                has_orchard_component: metadata.receiver_types.contains(&ReceiverType::Orchard),
+                has_transparent_component: metadata
+                    .receiver_types
+                    .contains(&ReceiverType::P2PKH)
+                    || metadata.receiver_types.contains(&ReceiverType::P2SH),
+                has_sapling_component: metadata
+                    .receiver_types
+                    .contains(&ReceiverType::Sapling),
+                has_orchard_component: metadata
+                    .receiver_types
+                    .contains(&ReceiverType::Orchard),
             };
 
             unified_addresses.insert(ua_string, address_info);
@@ -126,7 +141,9 @@ fn extract_unified_addresses_from_zcashd(wallet: &ZcashdWallet) -> HashMap<Strin
 ///
 /// # Returns
 /// - HashMap mapping address strings to their associated metadata
-fn extract_unified_addresses_from_zewif_wallet(wallet: &ZewifWallet) -> HashMap<String, UnifiedAddressInfo> {
+fn extract_unified_addresses_from_zewif_wallet(
+    wallet: &ZewifWallet,
+) -> HashMap<String, UnifiedAddressInfo> {
     let mut unified_addresses = HashMap::new();
 
     // Iterate through all accounts in the wallet
@@ -137,14 +154,18 @@ fn extract_unified_addresses_from_zewif_wallet(wallet: &ZewifWallet) -> HashMap<
                 let address_str = address.as_string();
 
                 // Convert the receiver types array to a HashSet
-                let receiver_types: HashSet<ReceiverType> = unified_addr.receiver_types().iter().cloned().collect();
+                let receiver_types: HashSet<ReceiverType> =
+                    unified_addr.receiver_types().iter().cloned().collect();
 
                 // Create the address info
                 let address_info = UnifiedAddressInfo {
                     address_str: address_str.clone(),
                     receiver_types,
-                    has_diversifier_index: unified_addr.diversifier_index().is_some(),
-                    has_transparent_component: unified_addr.has_transparent_component(),
+                    has_diversifier_index: unified_addr
+                        .diversifier_index()
+                        .is_some(),
+                    has_transparent_component: unified_addr
+                        .has_transparent_component(),
                     has_sapling_component: unified_addr.has_sapling_component(),
                     has_orchard_component: unified_addr.has_orchard_component(),
                 };
@@ -167,13 +188,16 @@ fn extract_unified_addresses_from_zewif_wallet(wallet: &ZewifWallet) -> HashMap<
 ///
 /// # Returns
 /// - HashMap mapping address strings to their associated metadata across all wallets
-fn extract_unified_addresses_from_zewif(zewif: &Zewif) -> HashMap<String, UnifiedAddressInfo> {
+fn extract_unified_addresses_from_zewif(
+    zewif: &Zewif,
+) -> HashMap<String, UnifiedAddressInfo> {
     let mut all_addresses = HashMap::new();
 
     // Get all wallets from the top container
     for wallet in zewif.wallets() {
         // Extract addresses from each wallet and combine them
-        let wallet_addresses = extract_unified_addresses_from_zewif_wallet(wallet);
+        let wallet_addresses =
+            extract_unified_addresses_from_zewif_wallet(wallet);
         all_addresses.extend(wallet_addresses);
     }
 
@@ -199,15 +223,23 @@ fn test_unified_address_detection() -> Result<()> {
         let (_, zcashd_wallet) = load_zcashd_wallet(path_elements)?;
 
         // Extract unified addresses from the ZCashd wallet
-        let addresses_before = extract_unified_addresses_from_zcashd(&zcashd_wallet);
+        let addresses_before =
+            extract_unified_addresses_from_zcashd(&zcashd_wallet);
 
         // Print information about whether unified addresses were found
         if addresses_before.is_empty() {
             println!("No unified addresses found in the source wallet");
         } else {
-            println!("Found {} unified addresses in the source wallet", addresses_before.len());
+            println!(
+                "Found {} unified addresses in the source wallet",
+                addresses_before.len()
+            );
             for (addr, info) in &addresses_before {
-                println!("Address {}: with {} receiver types", addr, info.receiver_types.len());
+                println!(
+                    "Address {}: with {} receiver types",
+                    addr,
+                    info.receiver_types.len()
+                );
             }
         }
 
@@ -221,9 +253,16 @@ fn test_unified_address_detection() -> Result<()> {
         if addresses_after.is_empty() {
             println!("No unified addresses found in the migrated wallet");
         } else {
-            println!("Found {} unified addresses in the migrated wallet", addresses_after.len());
+            println!(
+                "Found {} unified addresses in the migrated wallet",
+                addresses_after.len()
+            );
             for (addr, info) in &addresses_after {
-                println!("Address {}: with {} receiver types", addr, info.receiver_types.len());
+                println!(
+                    "Address {}: with {} receiver types",
+                    addr,
+                    info.receiver_types.len()
+                );
             }
         }
 
@@ -258,11 +297,14 @@ fn test_unified_address_metadata_preservation() -> Result<()> {
         let (_, zcashd_wallet) = load_zcashd_wallet(path_elements)?;
 
         // Extract unified addresses from the ZCashd wallet
-        let addresses_before = extract_unified_addresses_from_zcashd(&zcashd_wallet);
+        let addresses_before =
+            extract_unified_addresses_from_zcashd(&zcashd_wallet);
 
         // Skip this test if there are no unified addresses in the source wallet
         if addresses_before.is_empty() {
-            println!("Skipping metadata preservation test as no unified addresses found in source wallet");
+            println!(
+                "Skipping metadata preservation test as no unified addresses found in source wallet"
+            );
             continue;
         }
 
@@ -277,13 +319,19 @@ fn test_unified_address_metadata_preservation() -> Result<()> {
             // Find the corresponding address in the migrated wallet
             // The keys won't match directly because we generate placeholder addresses,
             // so we need to find the matching address by comparing metadata
-            let (_, after_info) = addresses_after.iter().find(|(_, info)| {
-                // Match by the set of receiver types
-                info.receiver_types == before_info.receiver_types &&
-                info.has_transparent_component == before_info.has_transparent_component &&
-                info.has_sapling_component == before_info.has_sapling_component &&
-                info.has_orchard_component == before_info.has_orchard_component
-            }).expect("Address not found after migration");
+            let (_, after_info) = addresses_after
+                .iter()
+                .find(|(_, info)| {
+                    // Match by the set of receiver types
+                    info.receiver_types == before_info.receiver_types
+                        && info.has_transparent_component
+                            == before_info.has_transparent_component
+                        && info.has_sapling_component
+                            == before_info.has_sapling_component
+                        && info.has_orchard_component
+                            == before_info.has_orchard_component
+                })
+                .expect("Address not found after migration");
 
             // Verify diversifier index is preserved
             assert_eq!(
@@ -357,11 +405,14 @@ fn test_unified_address_account_assignment() -> Result<()> {
         let (_, zcashd_wallet) = load_zcashd_wallet(path_elements)?;
 
         // Extract unified addresses from the ZCashd wallet
-        let addresses_before = extract_unified_addresses_from_zcashd(&zcashd_wallet);
+        let addresses_before =
+            extract_unified_addresses_from_zcashd(&zcashd_wallet);
 
         // Skip this test if there are no unified addresses in the source wallet
         if addresses_before.is_empty() {
-            println!("Skipping account assignment test as no unified addresses found in source wallet");
+            println!(
+                "Skipping account assignment test as no unified addresses found in source wallet"
+            );
             continue;
         }
 
@@ -383,8 +434,10 @@ fn test_unified_address_account_assignment() -> Result<()> {
             );
 
             // The single account should contain all unified addresses (if any)
-            let default_account = wallet.accounts().iter().next().expect("No account found");
-            let unified_addresses_in_account = default_account.addresses()
+            let default_account =
+                wallet.accounts().iter().next().expect("No account found");
+            let unified_addresses_in_account = default_account
+                .addresses()
                 .iter()
                 .filter(|addr| addr.is_unified())
                 .count();
@@ -402,7 +455,8 @@ fn test_unified_address_account_assignment() -> Result<()> {
             // Count the total number of unified addresses across all accounts
             let mut total_unified_addresses = 0;
             for account in wallet.accounts() {
-                total_unified_addresses += account.addresses()
+                total_unified_addresses += account
+                    .addresses()
                     .iter()
                     .filter(|addr| addr.is_unified())
                     .count();
@@ -428,7 +482,9 @@ fn test_unified_address_account_assignment() -> Result<()> {
 fn test_zingo_unified_address_migration() -> Result<()> {
     // This test is a placeholder for now because we need to implement
     // support for Zingo unified addresses separately
-    println!("Zingo unified address migration tests will be implemented separately");
+    println!(
+        "Zingo unified address migration tests will be implemented separately"
+    );
 
     Ok(())
 }

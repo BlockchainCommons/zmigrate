@@ -32,5 +32,7 @@ pub fn get_styles() -> Styles {
                 .underline()
                 .fg_color(Some(Color::Ansi(AnsiColor::Green))),
         )
-        .placeholder(Style::new().fg_color(Some(Color::Ansi(AnsiColor::BrightCyan))))
+        .placeholder(
+            Style::new().fg_color(Some(Color::Ansi(AnsiColor::BrightCyan))),
+        )
 }

@@ -16,7 +16,9 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use zewif::{Account, Network, ProtocolAddress, ShieldedAddress, Zewif, ZewifWallet};
+use zewif::{
+    Account, Network, ProtocolAddress, ShieldedAddress, Zewif, ZewifWallet,
+};
 use zewif_zcashd::{BDBDump, ZcashdDump, ZcashdParser, ZcashdWallet};
 
 // Import shared test utilities
@@ -38,7 +40,9 @@ use test_utils::fixtures_path;
 /// Tuple containing:
 /// - The raw ZcashdDump (for reference if needed)
 /// - The parsed ZcashdWallet structure
-fn load_zcashd_wallet(path_elements: &[&str]) -> Result<(ZcashdDump, ZcashdWallet)> {
+fn load_zcashd_wallet(
+    path_elements: &[&str],
+) -> Result<(ZcashdDump, ZcashdWallet)> {
     let path = fixtures_path(path_elements);
     println!("Testing IVK preservation for wallet: {}", path.display());
 
@@ -80,13 +84,15 @@ fn test_ivk_preservation() -> Result<()> {
         let sapling_ivks_before: HashMap<String, String> = zcashd_wallet
             .sapling_z_addresses()
             .iter()
-            .map(|(addr, ivk)| (
-                addr.to_string(zcashd_wallet.network()),
-                ivk.to_string()
-            ))
+            .map(|(addr, ivk)| {
+                (addr.to_string(zcashd_wallet.network()), ivk.to_string())
+            })
             .collect();
 
-        println!("Found {} sapling addresses with IVKs", sapling_ivks_before.len());
+        println!(
+            "Found {} sapling addresses with IVKs",
+            sapling_ivks_before.len()
+        );
 
         // Convert to ZeWIF format
         let zewif = zewif_zcashd::migrate_to_zewif(&zcashd_wallet)?;
@@ -98,13 +104,15 @@ fn test_ivk_preservation() -> Result<()> {
         for (addr, original_ivk) in &sapling_ivks_before {
             if let Some(migrated_ivk) = sapling_ivks_after.get(addr) {
                 assert_eq!(
-                    original_ivk,
-                    migrated_ivk,
+                    original_ivk, migrated_ivk,
                     "IVK for address {} was not properly preserved",
                     addr
                 );
             } else {
-                panic!("Address {} with IVK was not preserved in migration", addr);
+                panic!(
+                    "Address {} with IVK was not preserved in migration",
+                    addr
+                );
             }
         }
 
@@ -146,12 +154,15 @@ fn test_missing_ivk_handling() -> Result<()> {
     with_ivk.set_incoming_viewing_key(ivk.clone());
 
     // Create an address without an IVK
-    let without_ivk_addr_str = "zs1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq93gnn49";
+    let without_ivk_addr_str =
+        "zs1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq93gnn49";
     let without_ivk = ShieldedAddress::new(without_ivk_addr_str.to_string());
 
     // Add both addresses to the account
-    let with_ivk_addr = zewif::Address::new(ProtocolAddress::Shielded(with_ivk));
-    let without_ivk_addr = zewif::Address::new(ProtocolAddress::Shielded(without_ivk));
+    let with_ivk_addr =
+        zewif::Address::new(ProtocolAddress::Shielded(with_ivk));
+    let without_ivk_addr =
+        zewif::Address::new(ProtocolAddress::Shielded(without_ivk));
 
     account.add_address(with_ivk_addr);
     account.add_address(without_ivk_addr);
@@ -164,13 +175,23 @@ fn test_missing_ivk_handling() -> Result<()> {
     assert_eq!(ivks.len(), 1, "Should have exactly one IVK");
 
     // Verify the address with IVK is present
-    assert!(ivks.contains_key(with_ivk_addr_str), "Address with IVK should be in the map");
+    assert!(
+        ivks.contains_key(with_ivk_addr_str),
+        "Address with IVK should be in the map"
+    );
 
     // Verify the IVK matches what we set
-    assert_eq!(ivks.get(with_ivk_addr_str).unwrap(), &ivk.to_string(), "IVK should match what we set");
+    assert_eq!(
+        ivks.get(with_ivk_addr_str).unwrap(),
+        &ivk.to_string(),
+        "IVK should match what we set"
+    );
 
     // Verify the address without IVK is not in the map
-    assert!(!ivks.contains_key(without_ivk_addr_str), "Address without IVK should not be in the map");
+    assert!(
+        !ivks.contains_key(without_ivk_addr_str),
+        "Address without IVK should not be in the map"
+    );
 
     Ok(())
 }
@@ -201,11 +222,14 @@ fn test_address_type_ivk_associations() -> Result<()> {
 
     // Create a transparent address
     let transparent_addr_str = "t1a1zfft6qthfspr3khk7mpkqnufzgspzwj9l5cuq";
-    let transparent_addr = zewif::TransparentAddress::new(transparent_addr_str.to_string());
+    let transparent_addr =
+        zewif::TransparentAddress::new(transparent_addr_str.to_string());
 
     // Add both addresses to the account
-    let shielded = zewif::Address::new(ProtocolAddress::Shielded(shielded_addr));
-    let transparent = zewif::Address::new(ProtocolAddress::Transparent(transparent_addr));
+    let shielded =
+        zewif::Address::new(ProtocolAddress::Shielded(shielded_addr));
+    let transparent =
+        zewif::Address::new(ProtocolAddress::Transparent(transparent_addr));
 
     account.add_address(shielded);
     account.add_address(transparent);
@@ -218,8 +242,14 @@ fn test_address_type_ivk_associations() -> Result<()> {
     assert_eq!(ivks.len(), 1, "Should have exactly one IVK");
 
     // Verify only the shielded address has an IVK
-    assert!(ivks.contains_key(shielded_addr_str), "Shielded address should have an IVK");
-    assert!(!ivks.contains_key(transparent_addr_str), "Transparent address should not have an IVK");
+    assert!(
+        ivks.contains_key(shielded_addr_str),
+        "Shielded address should have an IVK"
+    );
+    assert!(
+        !ivks.contains_key(transparent_addr_str),
+        "Transparent address should not have an IVK"
+    );
 
     Ok(())
 }
@@ -237,7 +267,9 @@ fn test_address_type_ivk_associations() -> Result<()> {
 /// # Returns
 /// HashMap mapping address strings to their associated IVK strings.
 /// Only addresses with IVKs will be included in the map.
-fn extract_ivks_from_zewif_wallet(wallet: &ZewifWallet) -> HashMap<String, String> {
+fn extract_ivks_from_zewif_wallet(
+    wallet: &ZewifWallet,
+) -> HashMap<String, String> {
     let mut ivks = HashMap::new();
 
     // Iterate through all accounts in the wallet
@@ -249,7 +281,10 @@ fn extract_ivks_from_zewif_wallet(wallet: &ZewifWallet) -> HashMap<String, Strin
                 // Extract the IVK if present (handles None case correctly)
                 if let Some(ivk) = shielded.incoming_viewing_key() {
                     // Store address->IVK mapping using string representations
-                    ivks.insert(shielded.address().to_string(), ivk.to_string());
+                    ivks.insert(
+                        shielded.address().to_string(),
+                        ivk.to_string(),
+                    );
                 }
             }
         }

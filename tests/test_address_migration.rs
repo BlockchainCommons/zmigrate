@@ -13,7 +13,10 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use zewif::{Account, Address, Network, ProtocolAddress, ShieldedAddress, TransparentAddress, Zewif, ZewifWallet};
+use zewif::{
+    Account, Address, Network, ProtocolAddress, ShieldedAddress,
+    TransparentAddress, Zewif, ZewifWallet,
+};
 use zewif_zcashd::{BDBDump, ZcashdDump, ZcashdParser, ZcashdWallet};
 
 // Import shared test utilities
@@ -35,7 +38,9 @@ use test_utils::fixtures_path;
 /// Tuple containing:
 /// - The raw ZcashdDump (for reference if needed)
 /// - The parsed ZcashdWallet structure
-fn load_zcashd_wallet(path_elements: &[&str]) -> Result<(ZcashdDump, ZcashdWallet)> {
+fn load_zcashd_wallet(
+    path_elements: &[&str],
+) -> Result<(ZcashdDump, ZcashdWallet)> {
     let path = fixtures_path(path_elements);
     println!("Testing address migration for wallet: {}", path.display());
 
@@ -51,7 +56,8 @@ fn load_zcashd_wallet(path_elements: &[&str]) -> Result<(ZcashdDump, ZcashdWalle
 #[derive(Debug, Clone)]
 struct AddressInfo {
     /// The string representation of the address
-    #[allow(dead_code)] // This is used as a key in the HashMap, not directly accessed
+    #[allow(dead_code)]
+    // This is used as a key in the HashMap, not directly accessed
     address_str: String,
     /// The type of the address (transparent, sapling, unified)
     address_type: String,
@@ -75,7 +81,9 @@ struct AddressInfo {
 ///
 /// # Returns
 /// - HashMap mapping address strings to their associated metadata
-fn extract_addresses_from_zcashd(wallet: &ZcashdWallet) -> HashMap<String, AddressInfo> {
+fn extract_addresses_from_zcashd(
+    wallet: &ZcashdWallet,
+) -> HashMap<String, AddressInfo> {
     let mut addresses = HashMap::new();
 
     // Extract transparent addresses
@@ -135,7 +143,9 @@ fn extract_addresses_from_zcashd(wallet: &ZcashdWallet) -> HashMap<String, Addre
 ///
 /// # Returns
 /// - HashMap mapping address strings to their associated metadata
-fn extract_addresses_from_zewif_wallet(wallet: &ZewifWallet) -> HashMap<String, AddressInfo> {
+fn extract_addresses_from_zewif_wallet(
+    wallet: &ZewifWallet,
+) -> HashMap<String, AddressInfo> {
     let mut addresses = HashMap::new();
 
     // Iterate through all accounts in the wallet
@@ -153,18 +163,26 @@ fn extract_addresses_from_zewif_wallet(wallet: &ZewifWallet) -> HashMap<String, 
                     address_type = "transparent".to_string();
                     has_ivk = false; // Transparent addresses don't have IVKs
                     has_spending_key = false; // We don't track this for transparent addresses currently
-                },
+                }
                 ProtocolAddress::Shielded(shielded) => {
                     address_type = "sapling".to_string(); // Default to sapling for shielded addresses
                     has_ivk = shielded.incoming_viewing_key().is_some();
                     has_spending_key = shielded.spending_key().is_some();
-                },
+                }
                 ProtocolAddress::Unified(unified) => {
                     address_type = "unified".to_string();
-                    has_ivk = unified.sapling_component().is_some() &&
-                              unified.sapling_component().unwrap().incoming_viewing_key().is_some();
-                    has_spending_key = unified.sapling_component().is_some() &&
-                                       unified.sapling_component().unwrap().spending_key().is_some();
+                    has_ivk = unified.sapling_component().is_some()
+                        && unified
+                            .sapling_component()
+                            .unwrap()
+                            .incoming_viewing_key()
+                            .is_some();
+                    has_spending_key = unified.sapling_component().is_some()
+                        && unified
+                            .sapling_component()
+                            .unwrap()
+                            .spending_key()
+                            .is_some();
                 }
             }
 
@@ -217,7 +235,9 @@ fn extract_addresses_from_zewif(zewif: &Zewif) -> HashMap<String, AddressInfo> {
 ///
 /// # Returns
 /// - HashMap mapping address type to count
-fn count_address_types(addresses: &HashMap<String, AddressInfo>) -> HashMap<String, usize> {
+fn count_address_types(
+    addresses: &HashMap<String, AddressInfo>,
+) -> HashMap<String, usize> {
     let mut counts = HashMap::new();
 
     for info in addresses.values() {
@@ -248,7 +268,10 @@ fn test_address_type_preservation() -> Result<()> {
         let addresses_before = extract_addresses_from_zcashd(&zcashd_wallet);
         let address_counts_before = count_address_types(&addresses_before);
 
-        println!("Found addresses before migration: {:?}", address_counts_before);
+        println!(
+            "Found addresses before migration: {:?}",
+            address_counts_before
+        );
 
         // Convert to ZeWIF format
         let zewif = zewif_zcashd::migrate_to_zewif(&zcashd_wallet)?;
@@ -257,7 +280,10 @@ fn test_address_type_preservation() -> Result<()> {
         let addresses_after = extract_addresses_from_zewif(&zewif);
         let address_counts_after = count_address_types(&addresses_after);
 
-        println!("Found addresses after migration: {:?}", address_counts_after);
+        println!(
+            "Found addresses after migration: {:?}",
+            address_counts_after
+        );
 
         // Verify that all address types are preserved (count should match for each type)
         for (address_type, count) in &address_counts_before {
@@ -318,12 +344,13 @@ fn test_address_metadata_preservation() -> Result<()> {
 
         // Verify metadata preservation for each address
         for (addr_str, before_info) in &addresses_before {
-            let after_info = addresses_after.get(addr_str).expect("Address not found after migration");
+            let after_info = addresses_after
+                .get(addr_str)
+                .expect("Address not found after migration");
 
             // Verify address type is preserved
             assert_eq!(
-                before_info.address_type,
-                after_info.address_type,
+                before_info.address_type, after_info.address_type,
                 "Address type doesn't match for {}",
                 addr_str
             );
@@ -351,16 +378,14 @@ fn test_address_metadata_preservation() -> Result<()> {
             // For sapling addresses, verify IVK status is preserved
             if before_info.address_type == "sapling" {
                 assert_eq!(
-                    before_info.has_ivk,
-                    after_info.has_ivk,
+                    before_info.has_ivk, after_info.has_ivk,
                     "IVK status doesn't match for sapling address {}",
                     addr_str
                 );
 
                 // Verify spending key status is preserved
                 assert_eq!(
-                    before_info.has_spending_key,
-                    after_info.has_spending_key,
+                    before_info.has_spending_key, after_info.has_spending_key,
                     "Spending key status doesn't match for sapling address {}",
                     addr_str
                 );
@@ -409,7 +434,8 @@ fn test_address_default_account_assignment() -> Result<()> {
                 "Default migration should result in a single account for wallets without unified accounts"
             );
 
-            let default_account = wallet.accounts().iter().next().expect("No account found");
+            let default_account =
+                wallet.accounts().iter().next().expect("No account found");
             assert_eq!(
                 default_account.addresses().len(),
                 addresses_before.len(),
@@ -457,20 +483,24 @@ fn test_address_migration_edge_cases() -> Result<()> {
     let mut account = Account::new();
 
     // Case 1: A shielded address without an IVK
-    let no_ivk_addr_str = "zs1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq93gnn49";
+    let no_ivk_addr_str =
+        "zs1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq93gnn49";
     let no_ivk = ShieldedAddress::new(no_ivk_addr_str.to_string());
     let no_ivk_addr = Address::new(ProtocolAddress::Shielded(no_ivk));
 
     // Case 2: A transparent address with a name but no purpose
     let named_addr_str = "t1a1zfft6qthfspr3khk7mpkqnufzgspzwj9l5cuq";
     let named_transparent = TransparentAddress::new(named_addr_str.to_string());
-    let mut named_addr = Address::new(ProtocolAddress::Transparent(named_transparent));
+    let mut named_addr =
+        Address::new(ProtocolAddress::Transparent(named_transparent));
     named_addr.set_name("Named Address".to_string());
 
     // Case 3: A transparent address with a purpose but no name
     let purposed_addr_str = "t3JZcvsuQZFENyDtJiTmQChs6Zb6VwYM8r3";
-    let purposed_transparent = TransparentAddress::new(purposed_addr_str.to_string());
-    let mut purposed_addr = Address::new(ProtocolAddress::Transparent(purposed_transparent));
+    let purposed_transparent =
+        TransparentAddress::new(purposed_addr_str.to_string());
+    let mut purposed_addr =
+        Address::new(ProtocolAddress::Transparent(purposed_transparent));
     purposed_addr.set_purpose("change".to_string());
     purposed_addr.set_name("".to_string()); // Explicit empty name
 
@@ -488,21 +518,44 @@ fn test_address_migration_edge_cases() -> Result<()> {
     let addresses = extract_addresses_from_zewif(&zewif);
 
     // Verify Case 1: Shielded address without IVK
-    let no_ivk_info = addresses.get(no_ivk_addr_str).expect("Address not found");
-    assert_eq!(no_ivk_info.address_type, "sapling", "Should be a sapling address");
+    let no_ivk_info =
+        addresses.get(no_ivk_addr_str).expect("Address not found");
+    assert_eq!(
+        no_ivk_info.address_type, "sapling",
+        "Should be a sapling address"
+    );
     assert!(!no_ivk_info.has_ivk, "Should not have an IVK");
 
     // Verify Case 2: Named transparent address
     let named_info = addresses.get(named_addr_str).expect("Address not found");
-    assert_eq!(named_info.address_type, "transparent", "Should be a transparent address");
-    assert_eq!(named_info.name.as_ref().unwrap(), "Named Address", "Name should match");
+    assert_eq!(
+        named_info.address_type, "transparent",
+        "Should be a transparent address"
+    );
+    assert_eq!(
+        named_info.name.as_ref().unwrap(),
+        "Named Address",
+        "Name should match"
+    );
     assert_eq!(named_info.purpose, None, "Should not have a purpose");
 
     // Verify Case 3: Purposed transparent address with empty name
-    let purposed_info = addresses.get(purposed_addr_str).expect("Address not found");
-    assert_eq!(purposed_info.address_type, "transparent", "Should be a transparent address");
-    assert_eq!(purposed_info.name.as_ref().unwrap(), "", "Should have an empty name");
-    assert_eq!(purposed_info.purpose.as_ref().unwrap(), "change", "Purpose should match");
+    let purposed_info =
+        addresses.get(purposed_addr_str).expect("Address not found");
+    assert_eq!(
+        purposed_info.address_type, "transparent",
+        "Should be a transparent address"
+    );
+    assert_eq!(
+        purposed_info.name.as_ref().unwrap(),
+        "",
+        "Should have an empty name"
+    );
+    assert_eq!(
+        purposed_info.purpose.as_ref().unwrap(),
+        "change",
+        "Purpose should match"
+    );
 
     Ok(())
 }
