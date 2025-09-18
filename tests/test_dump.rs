@@ -1,5 +1,5 @@
 use anyhow::{Result, bail};
-use zmigrate::{zcashd_cmd /* zingo_cmd */};
+use zmigrate::{zcashd_cmd, zingo_cmd};
 
 use regex::Regex;
 use std::fmt::Write;
@@ -13,8 +13,7 @@ fn dump_wallet(path_elements: &[&str]) -> Result<String> {
     if path_elements[0] == "zcashd" {
         zcashd_cmd::dump_wallet(&path)
     } else if path_elements[0] == "zingo" {
-        // zingo_cmd::dump_wallet(&path)
-        bail!("zingo dump not yet implemented")
+        zingo_cmd::dump_wallet(&path)
     } else {
         bail!("Unknown command: {}", path_elements[0]);
     }
@@ -342,7 +341,6 @@ fn extract_stat(report: &str, label: &str) -> String {
 }
 
 #[test]
-#[ignore = "zingo dump not yet implemented"]
 fn test_zingo() {
     let paths = vec![
         vec![

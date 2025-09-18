@@ -9,7 +9,7 @@ use std::fs::File;
 use std::io::{self, Write};
 use std::path::PathBuf;
 use zewif::ZewifEnvelope;
-use zmigrate::zcashd_cmd::zcashd_to_zewif;
+use zmigrate::{zcashd_cmd, zingo_cmd};
 
 /// Supported input formats for wallet migration
 #[derive(Debug, Clone, ValueEnum)]
@@ -17,7 +17,7 @@ pub enum InputFormat {
     /// Input from a `zcashd` wallet
     Zcashd,
 
-    /// Input from a `zingo` wallet (unimplemented)
+    /// Input from a `zingo` wallet
     Zingo,
 
     /// Input from a `zewif` wallet
@@ -89,12 +89,9 @@ fn inner_main() -> Result<()> {
 
     let input_path = PathBuf::from(cli.input_file.as_str());
 
-    let from = cli.from.clone();
-    let to = cli.to.clone();
-
     match cli.from {
         InputFormat::Zcashd => {
-            let zewif = zcashd_to_zewif(&input_path)?;
+            let zewif = zcashd_cmd::zcashd_to_zewif(&input_path)?;
             let envelope = Envelope::from(zewif.clone());
             let mut ze = ZewifEnvelope::new(envelope)?;
             if cli.compress {
@@ -174,12 +171,41 @@ fn inner_main() -> Result<()> {
                 }
             }
         }
-        _ => {
-            unimplemented!(
-                "Unimplemented conversion from {:?} to {:?}",
-                from,
-                to
-            );
+        InputFormat::Zingo => {
+            if cli.compress {
+                anyhow::bail!(
+                    "Compression is not yet supported for zingo ingestion"
+                );
+            }
+            if cli.encrypt {
+                anyhow::bail!(
+                    "Encryption is not yet supported for zingo ingestion"
+                );
+            }
+            match cli.to {
+                OutputFormat::Dump => {
+                    let dump = zingo_cmd::dump_wallet(&input_path)?;
+                    let mut output: Box<dyn Write> =
+                        match cli.output_file.as_str() {
+                            "-" => Box::new(io::stdout()),
+                            path => Box::new(File::create(path).with_context(
+                                || {
+                                    format!(
+                                        "Failed to create output file: {}",
+                                        path
+                                    )
+                                },
+                            )?),
+                        };
+                    writeln!(output, "{}", dump)?;
+                }
+                other => {
+                    anyhow::bail!(
+                        "Zingo ingestion supports only --to dump for now (requested {:?})",
+                        other
+                    );
+                }
+            }
         }
     };
 

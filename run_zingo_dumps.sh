@@ -1,37 +1,42 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
-SRC=tests/fixtures/zingo
-TARGET=dumps/zingo
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "${SCRIPT_DIR}"
 
-# cargo run -- zingo ${SRC}/mainnet/hhcclaltpcckcsslpcnetblr-gf0aaf9347.dat > ${TARGET}/mainnet/hhcclaltpcckcsslpcnetblr-gf0aaf9347.txt
+SRC="tests/fixtures/zingo"
+TARGET="dumps/zingo"
 
-WALLETS=(
-    regtest/aaaaaaaaaaaaaaaaaaaaaaaa-v26  # version 1 WalletCapabilities
-    mainnet/hhcclaltpcckcsslpcnetblr-gf0aaf9347 # version 2 WalletCapabilities
-    mainnet/hhcclaltpcckcsslpcnetblr-latest # version 4 WalletCapabilities
-    # mainnet/vtfcorfbcbpctcfupmegmwbp-v28 # large
-    regtest/aadaalacaadaalacaadaalac-orch-and-sapling
-    regtest/aadaalacaadaalacaadaalac-orch-only
-    regtest/hmvasmuvwmssvichcarbpoct-v27
-    testnet/G93738061a
-    testnet/Gab72a38b
-    testnet/cbbhrwiilgbrababsshsmtpr-latest
-    testnet/glory_goddess
-    testnet/latest
-    testnet/v26
-    # testnet/v27 # large
-    testnet/v28
+run_dump() {
+  local wallet=$1
+  local input="${SRC}/${wallet}.dat"
+  local output="${TARGET}/${wallet}.txt"
+
+  mkdir -p "$(dirname "${output}")"
+
+  echo "Dumping ${input} -> ${output}"
+  cargo run --quiet -- --from zingo --to dump "${input}" "${output}"
+}
+
+wallets=(
+  "regtest/aaaaaaaaaaaaaaaaaaaaaaaa-v26"
+  "mainnet/hhcclaltpcckcsslpcnetblr-gf0aaf9347"
+  "mainnet/hhcclaltpcckcsslpcnetblr-latest"
+  # "mainnet/vtfcorfbcbpctcfupmegmwbp-v28" # large
+  "regtest/aadaalacaadaalacaadaalac-orch-and-sapling"
+  "regtest/aadaalacaadaalacaadaalac-orch-only"
+  "regtest/hmvasmuvwmssvichcarbpoct-v27"
+  "testnet/G93738061a"
+  "testnet/Gab72a38b"
+  "testnet/cbbhrwiilgbrababsshsmtpr-latest"
+  "testnet/glory_goddess"
+  "testnet/latest"
+  "testnet/v26"
+  # "testnet/v27" # large
+  "testnet/v28"
 )
 
-
-# Process each wallet file
-for wallet in "${WALLETS[@]}"; do
-    FILE=${wallet}
-    IN_FILE=${FILE}.dat
-    OUT_FILE=${FILE}.txt
-    # echo "Processing ${IN_FILE}..."
-    echo "cargo run -- zingo ${SRC}/${IN_FILE} > ${TARGET}/${OUT_FILE}"
-    cargo run -- zingo ${SRC}/${IN_FILE} > ${TARGET}/${OUT_FILE}
+for wallet in "${wallets[@]}"; do
+  run_dump "${wallet}"
 done

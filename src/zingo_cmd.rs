@@ -33,10 +33,14 @@ pub fn dump_wallet(file: &Path) -> Result<String> {
     let wallet = parser.parse()?;
     let mut dump = format!("{:#?}", wallet);
     let remaining = wallet.remaining();
+    dump.push_str("\n---\n");
     if remaining == 0 {
-        dump.push_str("\n---\n✅ Success");
+        dump.push_str("✅ Success");
     } else {
-        dump.push_str(&format!("\n---\n🛑 Unparsed bytes: {}", remaining))
+        dump.push_str(&format!(
+            "🛑 Unparsed bytes: {}\n✅ Success (partial)",
+            remaining
+        ));
     }
     Ok(dump)
 }
