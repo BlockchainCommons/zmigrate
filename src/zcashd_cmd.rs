@@ -1,14 +1,19 @@
 use bc_envelope::prelude::*;
-use std::{ collections::HashSet, path::{ Path, PathBuf } };
-use zewif::{ BlockHeight, Zewif };
+use std::{
+    collections::HashSet,
+    path::{Path, PathBuf},
+};
+use zewif::{BlockHeight, Zewif};
 
-use anyhow::{ Context, Result };
+use anyhow::{Context, Result};
 use clap::Args;
 use std::fmt::Write;
 
-use crate::file_args::{ FileArgs, FileArgsLike };
+use crate::file_args::{FileArgs, FileArgsLike};
 
-use zewif_zcashd::{ migrate_to_zewif, BDBDump, DBKey, ZcashdDump, ZcashdParser, ZcashdWallet };
+use zewif_zcashd::{
+    BDBDump, DBKey, ZcashdDump, ZcashdParser, ZcashdWallet, migrate_to_zewif,
+};
 
 /// Process a zcashd wallet file
 #[derive(Debug, Args)]
@@ -31,7 +36,10 @@ impl crate::exec::Exec for CommandArgs {
 }
 
 #[allow(dead_code)]
-fn output_keyname_summary(zcashd_dump: &ZcashdDump, output: &mut String) -> Result<()> {
+fn output_keyname_summary(
+    zcashd_dump: &ZcashdDump,
+    output: &mut String,
+) -> Result<()> {
     writeln!(output, "{}", zcashd_dump.keyname_summary())?;
     writeln!(output, "---")?;
     Ok(())
@@ -47,7 +55,7 @@ fn output_source_wallet_debug(zcashd_dump: &ZcashdDump, output: &mut String) {
 fn output_unparsed_keys(
     zcashd_dump: &ZcashdDump,
     unparsed_keys: &HashSet<DBKey>,
-    output: &mut String
+    output: &mut String,
 ) {
     if unparsed_keys.is_empty() {
         writeln!(output, "✅ All keys parsed successfully").unwrap();
@@ -81,7 +89,7 @@ fn output_zewif_debug(zewif: &Zewif, output: &mut String) {
 fn output_migration_quality_report(
     zcashd_wallet: &ZcashdWallet,
     zewif: &Zewif,
-    output: &mut String
+    output: &mut String,
 ) {
     writeln!(output, "Migration Quality Report").unwrap();
 
@@ -99,14 +107,19 @@ fn output_migration_quality_report(
     writeln!(
         output,
         "- Addresses: {}/{} preserved",
-        zewif_address_count,
-        zcashd_address_count
-    ).unwrap();
+        zewif_address_count, zcashd_address_count
+    )
+    .unwrap();
 
     // Check transaction preservation
     let zcashd_tx_count = zcashd_wallet.transactions().len();
     let zewif_tx_count = zewif.transactions().len();
-    writeln!(output, "- Transactions: {}/{} preserved", zewif_tx_count, zcashd_tx_count).unwrap();
+    writeln!(
+        output,
+        "- Transactions: {}/{} preserved",
+        zewif_tx_count, zcashd_tx_count
+    )
+    .unwrap();
 
     writeln!(output, "---").unwrap();
 }
@@ -118,17 +131,18 @@ fn output_envelope(envelope: &Envelope, output: &mut String) {
 }
 
 pub fn zcashd_to_zewif(file: &Path) -> Result<Zewif> {
-    let db_dump = BDBDump::from_file(file).context("Parsing BerkeleyDB file")?;
+    let db_dump =
+        BDBDump::from_file(file).context("Parsing BerkeleyDB file")?;
 
-    let zcashd_dump = ZcashdDump::from_bdb_dump(&db_dump, true).context("Parsing Zcashd dump")?;
+    let zcashd_dump = ZcashdDump::from_bdb_dump(&db_dump, true)
+        .context("Parsing Zcashd dump")?;
 
-    let (zcashd_wallet, unparsed_keys) = ZcashdParser::parse_dump(&zcashd_dump, true).context(
-        "Parsing Zcashd dump"
-    )?;
+    let (zcashd_wallet, unparsed_keys) =
+        ZcashdParser::parse_dump(&zcashd_dump, true)
+            .context("Parsing Zcashd dump")?;
 
-    let zewif = migrate_to_zewif(&zcashd_wallet, BlockHeight::default()).context(
-        "Migrating to Zewif"
-    )?;
+    let zewif = migrate_to_zewif(&zcashd_wallet, BlockHeight::default())
+        .context("Migrating to Zewif")?;
 
     if !unparsed_keys.is_empty() {
         anyhow::bail!("Unparsed keys: {:?}", unparsed_keys);
@@ -138,17 +152,18 @@ pub fn zcashd_to_zewif(file: &Path) -> Result<Zewif> {
 }
 
 pub fn dump_wallet(file: &Path) -> Result<String> {
-    let db_dump = BDBDump::from_file(file).context("Parsing BerkeleyDB file")?;
+    let db_dump =
+        BDBDump::from_file(file).context("Parsing BerkeleyDB file")?;
 
-    let zcashd_dump = ZcashdDump::from_bdb_dump(&db_dump, true).context("Parsing Zcashd dump")?;
+    let zcashd_dump = ZcashdDump::from_bdb_dump(&db_dump, true)
+        .context("Parsing Zcashd dump")?;
 
-    let (zcashd_wallet, unparsed_keys) = ZcashdParser::parse_dump(&zcashd_dump, true).context(
-        "Parsing Zcashd dump"
-    )?;
+    let (zcashd_wallet, unparsed_keys) =
+        ZcashdParser::parse_dump(&zcashd_dump, true)
+            .context("Parsing Zcashd dump")?;
 
-    let zewif = migrate_to_zewif(&zcashd_wallet, BlockHeight::default()).context(
-        "Migrating to Zewif"
-    )?;
+    let zewif = migrate_to_zewif(&zcashd_wallet, BlockHeight::default())
+        .context("Migrating to Zewif")?;
 
     let envelope = Envelope::from(zewif.clone());
 

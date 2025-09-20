@@ -107,10 +107,9 @@ fn inner_main() -> Result<()> {
             }
             let mut output: Box<dyn Write> = match cli.output_file.as_str() {
                 "-" => Box::new(io::stdout()),
-                path => Box::new(
-                    File::create(path)
-                        .with_context(|| format!("Failed to create output file: {}", path))?,
-                ),
+                path => Box::new(File::create(path).with_context(|| {
+                    format!("Failed to create output file: {}", path)
+                })?),
             };
             match cli.to {
                 OutputFormat::Zewif => {
@@ -130,8 +129,9 @@ fn inner_main() -> Result<()> {
         }
         InputFormat::Zewif => {
             // Read the input file as CBOR and parse as Envelope
-            let input_data = std::fs::read(&input_path)
-                .with_context(|| format!("Failed to read input file: {}", cli.input_file))?;
+            let input_data = std::fs::read(&input_path).with_context(|| {
+                format!("Failed to read input file: {}", cli.input_file)
+            })?;
             let envelope = Envelope::try_from_cbor_data(input_data)
                 .with_context(|| "Failed to parse input as Envelope")?;
             let mut ze = ZewifEnvelope::new(envelope)?;
@@ -147,10 +147,9 @@ fn inner_main() -> Result<()> {
             }
             let mut output: Box<dyn Write> = match cli.output_file.as_str() {
                 "-" => Box::new(io::stdout()),
-                path => Box::new(
-                    File::create(path)
-                        .with_context(|| format!("Failed to create output file: {}", path))?,
-                ),
+                path => Box::new(File::create(path).with_context(|| {
+                    format!("Failed to create output file: {}", path)
+                })?),
             };
             match cli.to {
                 OutputFormat::Format => {
@@ -167,13 +166,20 @@ fn inner_main() -> Result<()> {
                     // Try to reconstruct Zewif for debug output
                     match zewif::Zewif::try_from(ze.envelope().clone()) {
                         Ok(zewif) => writeln!(output, "{:#?}", zewif)?,
-                        Err(_) => writeln!(output, "Could not decode Zewif from envelope.")?,
+                        Err(_) => writeln!(
+                            output,
+                            "Could not decode Zewif from envelope."
+                        )?,
                     }
                 }
             }
         }
         _ => {
-            unimplemented!("Unimplemented conversion from {:?} to {:?}", from, to);
+            unimplemented!(
+                "Unimplemented conversion from {:?} to {:?}",
+                from,
+                to
+            );
         }
     };
 

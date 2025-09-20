@@ -9,7 +9,7 @@ pub fn fixtures_dir() -> PathBuf {
 }
 
 /// Helper to load a file path from components relative to the fixtures directory.
-/// 
+///
 /// # Arguments
 /// * `path_elements` - Path components relative to the fixtures directory,
 ///   e.g., `["zcashd", "golden-v5.6.0", "node0_wallet.dat"]`

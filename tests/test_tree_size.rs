@@ -13,14 +13,17 @@ fn extract_tree_data(wallet_path: &[&str]) -> Result<()> {
     println!("Loading wallet: {:?}", file_path);
 
     // Parse BDB file
-    let db_dump = BDBDump::from_file(&file_path).context("Parsing BerkeleyDB file")?;
+    let db_dump =
+        BDBDump::from_file(&file_path).context("Parsing BerkeleyDB file")?;
 
     // Parse to ZcashdDump
-    let zcashd_dump = ZcashdDump::from_bdb_dump(&db_dump).context("Parsing Zcashd dump")?;
+    let zcashd_dump =
+        ZcashdDump::from_bdb_dump(&db_dump).context("Parsing Zcashd dump")?;
 
     // Parse into wallet structure
     let (zcashd_wallet, _unparsed_keys) =
-        ZcashdParser::parse_dump(&zcashd_dump).context("Parsing Zcashd dump")?;
+        ZcashdParser::parse_dump(&zcashd_dump)
+            .context("Parsing Zcashd dump")?;
 
     // Access the OrchardNoteCommitmentTree
     let tree = zcashd_wallet.orchard_note_commitment_tree();
@@ -40,7 +43,8 @@ fn extract_tree_data(wallet_path: &[&str]) -> Result<()> {
         .context("Migrating to ZeWIF")?;
 
     // Count total addresses and transactions after migration
-    let address_count = zewif_wallet.wallets()
+    let address_count = zewif_wallet
+        .wallets()
         .iter()
         .flat_map(|w| w.accounts())
         .flat_map(|a| a.addresses())
