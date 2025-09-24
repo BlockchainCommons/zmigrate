@@ -8,7 +8,8 @@ pub fn fixtures_dir() -> PathBuf {
         .join("fixtures")
 }
 
-/// Helper to load a file path from components relative to the fixtures directory.
+/// Helper to load a file path from components relative to the fixtures
+/// directory.
 ///
 /// # Arguments
 /// * `path_elements` - Path components relative to the fixtures directory,

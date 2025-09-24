@@ -1,9 +1,11 @@
 #![cfg(feature = "disabled-tests")]
 
-use anyhow::{Context, Result};
-use std::collections::{HashMap, HashSet};
-use std::fmt::Write;
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::Write,
+};
 
+use anyhow::{Context, Result};
 use zewif_zcashd::{BDBDump, ZcashdDump, ZcashdParser, ZcashdWallet};
 
 // Import shared test utilities
@@ -38,7 +40,8 @@ fn load_zcashd_wallet(path_elements: &[&str]) -> Result<ZcashdWallet> {
     Ok(zcashd_wallet)
 }
 
-/// Tests if all transactions are assigned to at least one account after migration.
+/// Tests if all transactions are assigned to at least one account after
+/// migration.
 ///
 /// This function:
 /// 1. Loads a wallet from the given path
@@ -280,17 +283,20 @@ fn test_transaction_duplicate_assignments(
     Ok(report)
 }
 
-/// Tests if change transactions are correctly detected and assigned to source accounts.
+/// Tests if change transactions are correctly detected and assigned to source
+/// accounts.
 ///
 /// This function:
 /// 1. Loads a wallet from the given path
 /// 2. Extracts potential change addresses from the wallet
 /// 3. Migrates the wallet to ZeWIF format
-/// 4. Checks if transactions with potential change outputs are properly assigned
+/// 4. Checks if transactions with potential change outputs are properly
+///    assigned
 /// 5. Generates a detailed report of change transaction assignments
 ///
-/// Note: This is currently a simplified check as the real implementation would need
-/// more detailed access to the wallet structure to properly identify change addresses.
+/// Note: This is currently a simplified check as the real implementation would
+/// need more detailed access to the wallet structure to properly identify
+/// change addresses.
 ///
 /// # Arguments
 /// * `path_elements` - Path components relative to the fixtures directory
@@ -312,7 +318,8 @@ fn test_change_detection(path_elements: &[&str]) -> Result<String> {
     let mut properly_assigned_change_txs = 0;
 
     // This is a simplified check - in a real implementation we would need
-    // to know exactly which transactions have change outputs and check their assignments
+    // to know exactly which transactions have change outputs and check their
+    // assignments
     for transaction in zewif_wallet.transactions().values() {
         // Simple heuristic to check for potential change
         let has_change = false; // Placeholder - we cannot check outputs directly
@@ -320,9 +327,10 @@ fn test_change_detection(path_elements: &[&str]) -> Result<String> {
         if has_change {
             potential_change_txs += 1;
 
-            // Count assigned accounts for this transaction (placeholder for now)
-            // In a complete implementation, we would check that this transaction
-            // is assigned to the same account that sent the funds
+            // Count assigned accounts for this transaction (placeholder for
+            // now) In a complete implementation, we would check
+            // that this transaction is assigned to the same account
+            // that sent the funds
             let assigned_account_count = count_accounts_for_transaction(
                 &zewif_wallet,
                 &transaction.txid(),
@@ -393,9 +401,9 @@ fn test_change_detection(path_elements: &[&str]) -> Result<String> {
 
 /// Extracts potential change addresses from a ZcashdWallet.
 ///
-/// Note: This is a simplified implementation that doesn't actually extract change
-/// addresses. In a real implementation, we would use HD path analysis and other
-/// wallet-specific data to identify change addresses.
+/// Note: This is a simplified implementation that doesn't actually extract
+/// change addresses. In a real implementation, we would use HD path analysis
+/// and other wallet-specific data to identify change addresses.
 ///
 /// # Arguments
 /// * `_wallet` - The ZcashdWallet to extract change addresses from
@@ -403,7 +411,8 @@ fn test_change_detection(path_elements: &[&str]) -> Result<String> {
 /// # Returns
 /// * `HashSet<String>` - A set of potential change addresses
 fn extract_change_addresses(_wallet: &ZcashdWallet) -> HashSet<String> {
-    // This is just a placeholder - we would need access to keypath information to detect change addresses
+    // This is just a placeholder - we would need access to keypath information
+    // to detect change addresses
     HashSet::new()
 }
 
@@ -440,19 +449,21 @@ fn count_accounts_for_transaction(
 /// This is the primary test for the transaction assignment logic. It:
 /// 1. Tests transaction assignment on wallets of different formats and versions
 /// 2. Verifies that all transactions are assigned to at least one account
-/// 3. Checks that transactions are not indiscriminately assigned to multiple accounts
-/// 4. Confirms that transaction-to-account assignments are specific and accurate
+/// 3. Checks that transactions are not indiscriminately assigned to multiple
+///    accounts
+/// 4. Confirms that transaction-to-account assignments are specific and
+///    accurate
 /// 5. Produces a detailed summary report showing assignment statistics
 ///
-/// This test is critical for ensuring that transaction assignment continues to work
-/// correctly as changes are made to the codebase.
+/// This test is critical for ensuring that transaction assignment continues to
+/// work correctly as changes are made to the codebase.
 #[test]
 fn test_transaction_assignment_across_wallets() -> Result<()> {
     // Test with a variety of wallets
     let test_paths = vec![
         // Golden wallets (expected to have full transaction history)
         vec!["zcashd", "golden-v5.6.0", "node0_wallet.dat"],
-        vec!["zcashd", "golden-v5.6.0", "node2_wallet.dat"], // Test a different node wallet
+        vec!["zcashd", "golden-v5.6.0", "node2_wallet.dat"], /* Test a different node wallet */
         // Tarnished wallets (may have corruption or issues)
         vec!["zcashd", "tarnished-v5.6.0", "node0_wallet.dat"],
         // Sprout wallets (older format)
@@ -516,8 +527,8 @@ fn test_transaction_assignment_across_wallets() -> Result<()> {
 
 /// Extracts a numeric statistic from a report line.
 ///
-/// This helper function parses a line in a test report that starts with the given label
-/// and extracts the numeric value that follows it.
+/// This helper function parses a line in a test report that starts with the
+/// given label and extracts the numeric value that follows it.
 ///
 /// # Arguments
 /// * `report` - The report text to parse
@@ -541,8 +552,8 @@ fn extract_stat(report: &str, label: &str) -> String {
 
 /// Extracts a percentage value from a report line.
 ///
-/// This helper function parses a line in a test report that contains a percentage
-/// value and extracts just the percentage number.
+/// This helper function parses a line in a test report that contains a
+/// percentage value and extracts just the percentage number.
 ///
 /// # Arguments
 /// * `report` - The report text to parse
@@ -684,10 +695,12 @@ fn test_transaction_address_registry_correlation() -> Result<()> {
     Ok(())
 }
 
-/// Tests if the address registry is properly initialized with all address types.
+/// Tests if the address registry is properly initialized with all address
+/// types.
 ///
 /// This test ensures that:
-/// 1. Both transparent and sapling addresses are properly counted in the source wallet
+/// 1. Both transparent and sapling addresses are properly counted in the source
+///    wallet
 /// 2. All addresses are preserved when migrating to the ZeWIF format
 /// 3. The address registry maps addresses to the correct accounts
 /// 4. The transaction assignment system correctly uses the address registry
@@ -709,7 +722,8 @@ fn test_address_registry_initialization() -> Result<()> {
         .context("Migrating to ZeWIF")?;
 
     // Count addresses in the ZeWIF wallet
-    // Note: This is a simplified check as we don't have direct access to address types
+    // Note: This is a simplified check as we don't have direct access to
+    // address types
     let zewif_address_count = zewif_wallet
         .wallets()
         .iter()
@@ -764,18 +778,22 @@ fn test_address_registry_initialization() -> Result<()> {
 ///
 /// This test focuses on examining how transactions that should be assigned to
 /// multiple accounts are handled. It:
-/// 1. Checks if transactions are being assigned to multiple accounts when appropriate
+/// 1. Checks if transactions are being assigned to multiple accounts when
+///    appropriate
 /// 2. Ensures we're not indiscriminately assigning transactions to all accounts
 /// 3. Verifies that the multi-account assignment rate is reasonable (< 80%)
 /// 4. Provides detailed examples of any multi-account transactions found
 ///
-/// This test is important to ensure we correctly handle the case where a transaction
-/// legitimately involves multiple accounts, while avoiding over-assignment.
+/// This test is important to ensure we correctly handle the case where a
+/// transaction legitimately involves multiple accounts, while avoiding
+/// over-assignment.
 #[test]
 fn test_multi_account_transactions() -> Result<()> {
-    // We'll focus on testing specific wallets that might have multi-account transactions
+    // We'll focus on testing specific wallets that might have multi-account
+    // transactions
     let multi_account_wallet_paths = vec![
-        vec!["zcashd", "golden-v5.6.0", "node0_wallet.dat"], // Primary test wallet
+        vec!["zcashd", "golden-v5.6.0", "node0_wallet.dat"], /* Primary test
+                                                              * wallet */
         vec!["zcashd", "wallet0.dat"], // Additional test wallet
     ];
 
@@ -857,18 +875,20 @@ fn test_multi_account_transactions() -> Result<()> {
             }
         }
 
-        // Actual test: we can't know exactly how many multi-account transactions there should be,
-        // but we want to avoid having too many (which would indicate indiscriminate assignment)
+        // Actual test: we can't know exactly how many multi-account
+        // transactions there should be, but we want to avoid having too
+        // many (which would indicate indiscriminate assignment)
         assert!(
             multi_account_percentage < 80.0,
             "Too many multi-account transactions: {:.1}% (should be < 80%)",
             multi_account_percentage
         );
 
-        // We also don't want zero multi-account transactions in most wallets, as some
-        // transactions legitimately involve multiple accounts
-        // However, this test might fail for some wallets with only a single account
-        // or with no cross-account transactions, so we'll make it a soft check
+        // We also don't want zero multi-account transactions in most wallets,
+        // as some transactions legitimately involve multiple accounts
+        // However, this test might fail for some wallets with only a single
+        // account or with no cross-account transactions, so we'll make
+        // it a soft check
         if total_tx_count > 10 {
             println!(
                 "Note: Found {} multi-account transactions ({:.1}%)",

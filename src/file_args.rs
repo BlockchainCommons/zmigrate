@@ -1,7 +1,7 @@
-use anyhow::Result;
-use clap::Args;
 use std::{io::Read, path::PathBuf};
 
+use anyhow::Result;
+use clap::Args;
 use zewif::Data;
 
 pub trait FileArgsLike {

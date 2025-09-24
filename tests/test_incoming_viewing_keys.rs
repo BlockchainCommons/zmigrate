@@ -2,9 +2,10 @@
 
 //! # Test Suite: Incoming Viewing Key (IVK) Preservation Tests
 //!
-//! This test suite verifies that Incoming Viewing Keys are properly preserved during
-//! wallet migration. Unlike Full Viewing Keys (FVKs), IVKs are typically stored directly
-//! in ZCash wallets and are critical for detecting incoming transactions.
+//! This test suite verifies that Incoming Viewing Keys are properly preserved
+//! during wallet migration. Unlike Full Viewing Keys (FVKs), IVKs are typically
+//! stored directly in ZCash wallets and are critical for detecting incoming
+//! transactions.
 //!
 //! The tests verify:
 //! 1. IVKs are properly extracted from source wallets
@@ -54,11 +55,12 @@ fn load_zcashd_wallet(
     Ok((zcashd_dump, zcashd_wallet))
 }
 
-/// Tests that incoming viewing keys (IVKs) are properly preserved during migration
+/// Tests that incoming viewing keys (IVKs) are properly preserved during
+/// migration
 ///
-/// This test verifies that all IVKs in the source wallet are correctly preserved
-/// in the migrated ZeWIF wallet. It tests multiple wallet fixtures to ensure
-/// robustness across different wallet configurations.
+/// This test verifies that all IVKs in the source wallet are correctly
+/// preserved in the migrated ZeWIF wallet. It tests multiple wallet fixtures to
+/// ensure robustness across different wallet configurations.
 ///
 /// The test:
 /// 1. Loads wallet fixtures from different source files
@@ -73,14 +75,16 @@ fn test_ivk_preservation() -> Result<()> {
     let wallet_paths = [
         &["zcashd", "golden-v5.6.0", "node0_wallet.dat"],
         &["zcashd", "tarnished-v5.6.0", "node0_wallet.dat"],
-        &["zcashd", "wallet0.dat"][..], // Use slice syntax to make array sizes compatible
+        &["zcashd", "wallet0.dat"][..], /* Use slice syntax to make array
+                                         * sizes compatible */
     ];
 
     for path_elements in wallet_paths {
         // Load wallet and dump
         let (_, zcashd_wallet) = load_zcashd_wallet(path_elements)?;
 
-        // Extract all sapling addresses and their incoming viewing keys from the zcashd wallet
+        // Extract all sapling addresses and their incoming viewing keys from
+        // the zcashd wallet
         let sapling_ivks_before: HashMap<String, String> = zcashd_wallet
             .sapling_z_addresses()
             .iter()
@@ -143,7 +147,8 @@ fn test_ivk_preservation() -> Result<()> {
 /// addresses for which IVKs are not available (e.g., watch-only addresses).
 #[test]
 fn test_missing_ivk_handling() -> Result<()> {
-    // For this test, we'll create a ZeWIF wallet with addresses that have missing IVKs
+    // For this test, we'll create a ZeWIF wallet with addresses that have
+    // missing IVKs
     let mut wallet = ZewifWallet::new(Network::Test);
     let mut account = Account::new();
 
@@ -196,9 +201,11 @@ fn test_missing_ivk_handling() -> Result<()> {
     Ok(())
 }
 
-/// Tests that IVKs are associated only with shielded addresses and not transparent ones
+/// Tests that IVKs are associated only with shielded addresses and not
+/// transparent ones
 ///
-/// This test validates the ZeWIF data model's handling of IVKs across different address types:
+/// This test validates the ZeWIF data model's handling of IVKs across different
+/// address types:
 /// 1. Creates a synthetic wallet with both transparent and shielded addresses
 /// 2. Associates an IVK with the shielded address
 /// 3. Verifies the IVK extraction process correctly:
@@ -206,8 +213,9 @@ fn test_missing_ivk_handling() -> Result<()> {
 ///    - Never associates IVKs with transparent addresses
 ///    - Maintains the correct address-to-IVK mapping
 ///
-/// This test ensures the implementation properly distinguishes between address types
-/// and doesn't attempt to process IVKs for transparent addresses, which would be incorrect.
+/// This test ensures the implementation properly distinguishes between address
+/// types and doesn't attempt to process IVKs for transparent addresses, which
+/// would be incorrect.
 #[test]
 fn test_address_type_ivk_associations() -> Result<()> {
     // Create a wallet with both transparent and shielded addresses
@@ -254,7 +262,8 @@ fn test_address_type_ivk_associations() -> Result<()> {
     Ok(())
 }
 
-/// Extracts a mapping of address strings to incoming viewing key strings from a ZeWIF wallet
+/// Extracts a mapping of address strings to incoming viewing key strings from a
+/// ZeWIF wallet
 ///
 /// This helper function traverses the wallet structure to:
 /// 1. Find all shielded addresses across all accounts
@@ -293,10 +302,11 @@ fn extract_ivks_from_zewif_wallet(
     ivks
 }
 
-/// Extracts a mapping of address strings to incoming viewing key strings from a ZeWIF top-level container
+/// Extracts a mapping of address strings to incoming viewing key strings from a
+/// ZeWIF top-level container
 ///
-/// This function extends `extract_ivks_from_zewif` to work with the top-level ZeWIF
-/// container, which may contain multiple wallets. It:
+/// This function extends `extract_ivks_from_zewif` to work with the top-level
+/// ZeWIF container, which may contain multiple wallets. It:
 /// 1. Iterates through all wallets in the container
 /// 2. Extracts IVKs from each wallet using `extract_ivks_from_zewif`
 /// 3. Combines the results into a single map with all IVKs across all wallets
@@ -305,7 +315,8 @@ fn extract_ivks_from_zewif_wallet(
 /// - `zewif`: Reference to a ZeWIF top-level container
 ///
 /// # Returns
-/// HashMap mapping address strings to their associated IVK strings across all wallets.
+/// HashMap mapping address strings to their associated IVK strings across all
+/// wallets.
 fn extract_ivks_from_zewif(zewif: &Zewif) -> HashMap<String, String> {
     let mut all_ivks = HashMap::new();
 

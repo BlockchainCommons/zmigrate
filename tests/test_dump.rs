@@ -1,10 +1,10 @@
+use std::fmt::Write;
+
 use anyhow::{Result, bail};
+use regex::Regex;
 use zmigrate::zcashd_cmd;
 #[cfg(feature = "zingo")]
 use zmigrate::zingo_cmd;
-
-use regex::Regex;
-use std::fmt::Write;
 
 // Import shared test utilities
 mod test_utils;
@@ -271,7 +271,7 @@ fn test_migration_quality_report() {
     let test_paths = vec![
         // Golden reference wallets (expected to be fully working)
         vec!["zcashd", "golden-v5.6.0", "node0_wallet.dat"],
-        vec!["zcashd", "golden-v5.6.0", "node2_wallet.dat"], // May have more shielded data
+        vec!["zcashd", "golden-v5.6.0", "node2_wallet.dat"], /* May have more shielded data */
         // Tarnished wallets (may have issues)
         vec!["zcashd", "tarnished-v5.6.0", "node0_wallet.dat"],
         // Sprout wallets (older format)
@@ -353,7 +353,8 @@ fn test_zingo() {
             "hhcclaltpcckcsslpcnetblr-gf0aaf9347.dat",
         ],
         vec!["zingo", "mainnet", "hhcclaltpcckcsslpcnetblr-latest.dat"],
-        // vec!["zingo", "mainnet", "vtfcorfbcbpctcfupmegmwbp-v28.dat"], // long
+        // vec!["zingo", "mainnet", "vtfcorfbcbpctcfupmegmwbp-v28.dat"], //
+        // long
         vec!["zingo", "regtest", "hmvasmuvwmssvichcarbpoct-v27.dat"],
         vec!["zingo", "regtest", "aadaalacaadaalacaadaalac-orch-only.dat"],
         vec![
@@ -368,7 +369,8 @@ fn test_zingo() {
         vec!["zingo", "testnet", "glory_goddess.dat"],
         vec!["zingo", "testnet", "latest.dat"],
         vec!["zingo", "testnet", "v26.dat"],
-        vec!["zingo", "testnet", "v28.dat"], // vec!["zingo", "testnet", "v27.dat"], // long
+        vec!["zingo", "testnet", "v28.dat"], /* vec!["zingo", "testnet",
+                                              * "v27.dat"], // long */
     ];
     for path in &paths {
         test_dump(path);

@@ -1,19 +1,18 @@
-use bc_envelope::prelude::*;
 use std::{
     collections::HashSet,
+    fmt::Write,
     path::{Path, PathBuf},
 };
-use zewif::{BlockHeight, Zewif};
 
 use anyhow::{Context, Result};
+use bc_envelope::prelude::*;
 use clap::Args;
-use std::fmt::Write;
-
-use crate::file_args::{FileArgs, FileArgsLike};
-
+use zewif::{BlockHeight, Zewif};
 use zewif_zcashd::{
     BDBDump, DBKey, ZcashdDump, ZcashdParser, ZcashdWallet, migrate_to_zewif,
 };
+
+use crate::file_args::{FileArgs, FileArgsLike};
 
 /// Process a zcashd wallet file
 #[derive(Debug, Args)]
@@ -24,15 +23,11 @@ pub struct CommandArgs {
 }
 
 impl FileArgsLike for CommandArgs {
-    fn file(&self) -> &PathBuf {
-        &self.file_args.file
-    }
+    fn file(&self) -> &PathBuf { &self.file_args.file }
 }
 
 impl crate::exec::Exec for CommandArgs {
-    fn exec(&self) -> Result<String> {
-        dump_wallet(self.file())
-    }
+    fn exec(&self) -> Result<String> { dump_wallet(self.file()) }
 }
 
 #[allow(dead_code)]

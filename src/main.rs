@@ -1,13 +1,15 @@
 mod styles;
 
+use std::{
+    fs::File,
+    io::{self, Write},
+    path::PathBuf,
+};
+
 use anyhow::{Context, Result};
 use bc_envelope::prelude::*;
-use clap::Parser as ClapParser;
-use clap::ValueEnum;
+use clap::{Parser as ClapParser, ValueEnum};
 use rpassword::prompt_password;
-use std::fs::File;
-use std::io::{self, Write};
-use std::path::PathBuf;
 use zewif::ZewifEnvelope;
 use zmigrate::zcashd_cmd;
 #[cfg(feature = "zingo")]

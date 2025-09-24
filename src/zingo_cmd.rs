@@ -15,9 +15,7 @@ pub struct CommandArgs {
 }
 
 impl FileArgsLike for CommandArgs {
-    fn file(&self) -> &PathBuf {
-        &self.file_args.file
-    }
+    fn file(&self) -> &PathBuf { &self.file_args.file }
 }
 
 impl crate::exec::Exec for CommandArgs {

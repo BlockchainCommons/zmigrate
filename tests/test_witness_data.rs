@@ -22,7 +22,8 @@ fn dump_wallet(path_elements: &[&str]) -> Result<String> {
     }
 }
 
-/// Tests that witness data and memo fields are properly migrated from ZCashd to ZeWIF format
+/// Tests that witness data and memo fields are properly migrated from ZCashd to
+/// ZeWIF format
 #[test]
 #[ignore]
 fn test_witness_data_migration() {
@@ -66,13 +67,16 @@ fn test_witness_data_migration() {
         println!("- Destination memo entries: {}", memo_count_in_dest);
 
         // Note: Transaction time is noted in the code but not yet stored
-        // This will be implemented in the "Extract Transaction Metadata" subtask
+        // This will be implemented in the "Extract Transaction Metadata"
+        // subtask
 
-        // We don't want to strictly assert witness data exists because some wallets
-        // may legitimately not have any. Instead, we just log the information.
+        // We don't want to strictly assert witness data exists because some
+        // wallets may legitimately not have any. Instead, we just log
+        // the information.
 
-        // But we can check that memo field support is working by verifying that we have some memo entries
-        // Only assert if we have sapling outputs, which should have memo fields
+        // But we can check that memo field support is working by verifying that
+        // we have some memo entries Only assert if we have sapling
+        // outputs, which should have memo fields
         if zewif_section.contains("SaplingOutputDescription") {
             assert!(
                 memo_count_in_dest > 0,

@@ -91,15 +91,17 @@ fn extract_unified_addresses_from_zcashd(
         // Extract unified addresses from unified_accounts.address_metadata
         for (address_id, metadata) in &unified_accounts.address_metadata {
             // Create a unique string identifier for this unified address
-            // The wallet.dat file doesn't actually store the complete unified address strings.
-            // Instead, it stores the metadata needed to derive them at runtime:
+            // The wallet.dat file doesn't actually store the complete unified
+            // address strings. Instead, it stores the metadata
+            // needed to derive them at runtime:
             // 1. Diversifier indices (which we preserve)
             // 2. Receiver types (which we preserve)
             // 3. References to keys (which we preserve)
             //
             // Since the actual UA string doesn't exist in the source data,
-            // we use a placeholder based on the address_id that ensures uniqueness.
-            // This is consistent with how the migration code handles this data.
+            // we use a placeholder based on the address_id that ensures
+            // uniqueness. This is consistent with how the migration
+            // code handles this data.
             let id_bytes: &[u8] = address_id.as_ref();
             let ua_string = format!("ua:{}", hex::encode(id_bytes));
 
@@ -111,7 +113,8 @@ fn extract_unified_addresses_from_zcashd(
             let address_info = UnifiedAddressInfo {
                 address_str: ua_string.clone(),
                 receiver_types,
-                has_diversifier_index: true, // Unified addresses always have diversifier indices
+                has_diversifier_index: true, /* Unified addresses always have
+                                              * diversifier indices */
                 has_transparent_component: metadata
                     .receiver_types
                     .contains(&ReceiverType::P2PKH)
@@ -180,14 +183,15 @@ fn extract_unified_addresses_from_zewif_wallet(
 
 /// Extract unified addresses and their info from a ZeWIF top-level container
 ///
-/// This function extends `extract_unified_addresses_from_zewif` to work with the top-level ZeWIF
-/// container, which may contain multiple wallets.
+/// This function extends `extract_unified_addresses_from_zewif` to work with
+/// the top-level ZeWIF container, which may contain multiple wallets.
 ///
 /// # Parameters
 /// - `zewif`: Reference to a ZeWIF top-level container
 ///
 /// # Returns
-/// - HashMap mapping address strings to their associated metadata across all wallets
+/// - HashMap mapping address strings to their associated metadata across all
+///   wallets
 fn extract_unified_addresses_from_zewif(
     zewif: &Zewif,
 ) -> HashMap<String, UnifiedAddressInfo> {
@@ -204,7 +208,8 @@ fn extract_unified_addresses_from_zewif(
     all_addresses
 }
 
-/// Tests if the source wallet has unified addresses and if they're properly preserved
+/// Tests if the source wallet has unified addresses and if they're properly
+/// preserved
 ///
 /// This test verifies:
 /// 1. That unified accounts are detected when present
@@ -249,7 +254,8 @@ fn test_unified_address_detection() -> Result<()> {
         // Extract unified addresses from the migrated ZeWIF wallet
         let addresses_after = extract_unified_addresses_from_zewif(&zewif);
 
-        // Print information about whether unified addresses were found after migration
+        // Print information about whether unified addresses were found after
+        // migration
         if addresses_after.is_empty() {
             println!("No unified addresses found in the migrated wallet");
         } else {
@@ -317,8 +323,9 @@ fn test_unified_address_metadata_preservation() -> Result<()> {
         // Verify metadata preservation for each address
         for (addr_str, before_info) in &addresses_before {
             // Find the corresponding address in the migrated wallet
-            // The keys won't match directly because we generate placeholder addresses,
-            // so we need to find the matching address by comparing metadata
+            // The keys won't match directly because we generate placeholder
+            // addresses, so we need to find the matching address by
+            // comparing metadata
             let (_, after_info) = addresses_after
                 .iter()
                 .find(|(_, info)| {
@@ -389,8 +396,10 @@ fn test_unified_address_metadata_preservation() -> Result<()> {
 /// Tests that unified addresses are assigned to the correct accounts
 ///
 /// This test verifies that:
-/// 1. Unified addresses are assigned to accounts according to the address registry
-/// 2. In single-account mode, all unified addresses are assigned to the default account
+/// 1. Unified addresses are assigned to accounts according to the address
+///    registry
+/// 2. In single-account mode, all unified addresses are assigned to the default
+///    account
 #[test]
 fn test_unified_address_account_assignment() -> Result<()> {
     // Test with wallet fixtures that may have unified addresses
@@ -426,7 +435,8 @@ fn test_unified_address_account_assignment() -> Result<()> {
         let has_unified_accounts = zcashd_wallet.unified_accounts().is_some();
 
         if !has_unified_accounts {
-            // For wallets without unified accounts, we should have a single default account
+            // For wallets without unified accounts, we should have a single
+            // default account
             assert_eq!(
                 wallet.accounts().len(),
                 1,

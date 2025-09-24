@@ -2,8 +2,10 @@
 
 //! # Test Suite: Address Migration Tests
 //!
-//! This test suite verifies that all aspects of address migration work correctly:
-//! 1. All address types (transparent, sapling, unified) are properly extracted and preserved
+//! This test suite verifies that all aspects of address migration work
+//! correctly:
+//! 1. All address types (transparent, sapling, unified) are properly extracted
+//!    and preserved
 //! 2. Address metadata (names, purposes, HD paths, keys) is correctly migrated
 //! 3. Addresses are assigned to the correct accounts
 //!
@@ -98,7 +100,8 @@ fn extract_addresses_from_zcashd(
             name: Some(name.clone()),
             purpose,
             has_ivk: false, // Transparent addresses don't have IVKs
-            has_spending_key: false, // We don't track this for transparent addresses in our tests currently
+            has_spending_key: false, /* We don't track this for transparent
+                             * addresses in our tests currently */
         };
 
         addresses.insert(address_str, address_info);
@@ -118,17 +121,20 @@ fn extract_addresses_from_zcashd(
         let address_info = AddressInfo {
             address_str: address_str.clone(),
             address_type: "sapling".to_string(),
-            name: None, // Sapling addresses don't have names in our current ZCashd implementation
+            name: None, /* Sapling addresses don't have names in our current
+                         * ZCashd implementation */
             purpose,
-            has_ivk: true, // By definition, this has an IVK since we're iterating over sapling_z_addresses
+            has_ivk: true, /* By definition, this has an IVK since we're
+                            * iterating over sapling_z_addresses */
             has_spending_key,
         };
 
         addresses.insert(address_str, address_info);
     }
 
-    // Note: Unified addresses aren't directly supported in the current ZCashd implementation
-    // If we add support for them later, we would extract them here
+    // Note: Unified addresses aren't directly supported in the current ZCashd
+    // implementation If we add support for them later, we would extract
+    // them here
 
     addresses
 }
@@ -204,14 +210,15 @@ fn extract_addresses_from_zewif_wallet(
 
 /// Extract addresses and their info from a ZeWIF top-level container
 ///
-/// This function extends `extract_addresses_from_zewif` to work with the top-level ZeWIF
-/// container, which may contain multiple wallets.
+/// This function extends `extract_addresses_from_zewif` to work with the
+/// top-level ZeWIF container, which may contain multiple wallets.
 ///
 /// # Parameters
 /// - `zewif`: Reference to a ZeWIF top-level container
 ///
 /// # Returns
-/// - HashMap mapping address strings to their associated metadata across all wallets
+/// - HashMap mapping address strings to their associated metadata across all
+///   wallets
 fn extract_addresses_from_zewif(zewif: &Zewif) -> HashMap<String, AddressInfo> {
     let mut all_addresses = HashMap::new();
 
@@ -257,7 +264,8 @@ fn test_address_type_preservation() -> Result<()> {
     let wallet_paths = [
         &["zcashd", "golden-v5.6.0", "node0_wallet.dat"],
         &["zcashd", "tarnished-v5.6.0", "node0_wallet.dat"],
-        &["zcashd", "wallet0.dat"][..], // Use slice syntax to make array sizes compatible
+        &["zcashd", "wallet0.dat"][..], /* Use slice syntax to make array
+                                         * sizes compatible */
     ];
 
     for path_elements in wallet_paths {
@@ -285,7 +293,8 @@ fn test_address_type_preservation() -> Result<()> {
             address_counts_after
         );
 
-        // Verify that all address types are preserved (count should match for each type)
+        // Verify that all address types are preserved (count should match for
+        // each type)
         for (address_type, count) in &address_counts_before {
             assert_eq!(
                 address_counts_after.get(address_type).unwrap_or(&0),
@@ -296,8 +305,8 @@ fn test_address_type_preservation() -> Result<()> {
         }
 
         // Verify that all original addresses are preserved
-        // Note: The total count might not match because unified addresses might be added
-        // during migration from the UnifiedAccounts structure
+        // Note: The total count might not match because unified addresses might
+        // be added during migration from the UnifiedAccounts structure
         assert!(
             addresses_after.len() >= addresses_before.len(),
             "Migrated wallet has fewer addresses than the original"
@@ -398,8 +407,8 @@ fn test_address_metadata_preservation() -> Result<()> {
 
 /// Tests address assignment to accounts
 ///
-/// This test verifies that addresses are correctly assigned to the default account
-/// when no unified accounts are present.
+/// This test verifies that addresses are correctly assigned to the default
+/// account when no unified accounts are present.
 #[test]
 fn test_address_default_account_assignment() -> Result<()> {
     // Test with several different wallet fixtures to ensure wide coverage
@@ -427,7 +436,8 @@ fn test_address_default_account_assignment() -> Result<()> {
         let has_unified_accounts = zcashd_wallet.unified_accounts().is_some();
 
         if !has_unified_accounts {
-            // For wallets without unified accounts, we should have a single default account
+            // For wallets without unified accounts, we should have a single
+            // default account
             assert_eq!(
                 wallet.accounts().len(),
                 1,
@@ -442,11 +452,14 @@ fn test_address_default_account_assignment() -> Result<()> {
                 "Default account should contain all addresses"
             );
         } else {
-            // For wallets with unified accounts, addresses will be spread across multiple accounts
-            // The unified accounts feature in ZCash is more complex and can create addresses
-            // that aren't directly visible in the address list. We can only verify that:
+            // For wallets with unified accounts, addresses will be spread
+            // across multiple accounts The unified accounts feature
+            // in ZCash is more complex and can create addresses
+            // that aren't directly visible in the address list. We can only
+            // verify that:
             // 1. We have multiple accounts
-            // 2. All the addresses we found in the source wallet are present in some account
+            // 2. All the addresses we found in the source wallet are present in
+            //    some account
 
             // Verify we have multiple accounts
             assert!(
