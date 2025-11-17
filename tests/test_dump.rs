@@ -174,12 +174,11 @@ fn count_nonzero_positions(text: &str) -> usize {
     let re = Regex::new(position_pattern).unwrap();
 
     for cap in re.captures_iter(text) {
-        if let Some(num_match) = cap.get(1) {
-            if let Ok(num) = num_match.as_str().parse::<u32>() {
-                if num > 0 {
-                    count += 1;
-                }
-            }
+        if let Some(num_match) = cap.get(1)
+            && let Ok(num) = num_match.as_str().parse::<u32>()
+            && num > 0
+        {
+            count += 1;
         }
     }
     count

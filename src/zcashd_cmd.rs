@@ -60,10 +60,10 @@ fn output_unparsed_keys(
         sorted_keys.sort();
         let mut last_keyname: Option<String> = None;
         for key in sorted_keys {
-            if let Some(ref last_keyname) = last_keyname {
-                if *last_keyname != key.keyname {
-                    writeln!(output).unwrap();
-                }
+            if let Some(ref last_keyname) = last_keyname
+                && *last_keyname != key.keyname
+            {
+                writeln!(output).unwrap();
             }
             last_keyname = Some(key.keyname.to_string());
 
